@@ -93,22 +93,12 @@ const config = {
 				}
 			}]
 		}]),
-		new CopyPlugin([
-			{
-				from: '_src/images/',
-				to: 'images',
-				globOptions: {
-					ignore: ['.keep']
-				}
-			},
-			{
-				from: '_src/fonts/',
-				to: 'fonts',
-				globOptions: {
-					ignore: ['.keep']
-				}
-			}
-		]),
+		new CopyPlugin([{
+			patterns: [
+        { from: '_src/images/', to: 'images', globOptions: { ignore: ['.keep'] } },
+        { from: '_src/fonts/', to: 'fonts', globOptions: { ignore: ['.keep'] } }
+			]
+		}]),
 		new ImageminPlugin({
 			test: /\.(jpe?g|png|gif|webp|svg)$/i
 		}),
