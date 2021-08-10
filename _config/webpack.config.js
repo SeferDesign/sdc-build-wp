@@ -4,7 +4,6 @@ const parentPath = process.cwd();
 const package = require(process.cwd() + '/package.json');
 const notifier = require('node-notifier');
 const WebpackBar = require('webpackbar');
-// const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const StylelintPlugin = require('stylelint-webpack-plugin');
 const ReplaceInFileWebpackPlugin = require('replace-in-file-webpack-plugin');
@@ -60,7 +59,13 @@ const config = {
 					} },
 					{ loader: 'group-css-media-queries-loader' },
 					{ loader: 'sass-loader' },
-					{ loader: 'postcss-loader' }
+					{ loader: 'postcss-loader', options: {
+						postcssOptions: {
+							plugins: [
+								require('autoprefixer')
+							]
+						}
+					} }
 				]
 			}
 		]
@@ -71,17 +76,6 @@ const config = {
 	},
 	plugins: [
 		new WebpackBar(),
-		// new FriendlyErrorsWebpackPlugin({
-		// 	onErrors: function(severity, errors) {
-		// 		if (severity !== 'error') { return; }
-		// 		const error = errors[0];
-		// 		notifier.notify({
-		// 			title: 'Webpack error',
-		// 			message: severity + ': ' + error.name,
-		// 			subtitle: error.file || ''
-		// 		});
-		// 	}
-		// }),
 		new StylelintPlugin({
 			configFile: pathConfig.resolve(__dirname, '.stylelintrc'),
 			fix: true
@@ -89,31 +83,30 @@ const config = {
 		new MiniCssExtractPlugin({
 			filename: '[name].min.css'
 		}),
-		new ReplaceInFileWebpackPlugin([
+		new ReplaceInFileWebpackPlugin([{
+			dir: './',
+			files: ['functions.php'],
+			rules: [{
+				search: /\$cacheVersion\ \=\ \'(.*)\'\;/g,
+				replace: function(match) {
+					return match.replace(/\'([^\']+)\'/g, '\'' + new Date().getTime() + '\'');
+				}
+			}]
+		}]),
+		new CopyPlugin([
 			{
-				dir: './',
-				files: ['functions.php'],
-				rules: [{
-					search: /\$cacheVersion\ \=\ \'(.*)\'\;/g,
-					replace: function(match) {
-						return match.replace(/\'([^\']+)\'/g, '\'' + new Date().getTime() + '\'');
-					}
-				}]
+				from: '_src/images/',
+				to: 'images',
+				ignore: ['.keep']
+			},
+			{
+				from: '_src/fonts/',
+				to: 'fonts',
+				ignore: ['.keep']
 			}
 		]),
-		// new CopyPlugin([
-		// 	{
-		// 		from: '_src/images/',
-		// 		to: 'images'
-		// 	},
-		// 	{
-		// 		from: '_src/fonts/',
-		// 		to: 'fonts',
-		// 		ignore: ['.keep']
-		// 	}
-		// ]),
 		new ImageminPlugin({
-			test: /\.(jpe?g|png|gif|svg)$/i
+			test: /\.(jpe?g|png|gif|webp|svg)$/i
 		}),
 		new RemovePlugin({
 			after: {
