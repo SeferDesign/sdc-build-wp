@@ -97,12 +97,16 @@ const config = {
 			{
 				from: '_src/images/',
 				to: 'images',
-				ignore: ['.keep']
+				globOptions: {
+					ignore: ['.keep']
+				}
 			},
 			{
 				from: '_src/fonts/',
 				to: 'fonts',
-				ignore: ['.keep']
+				globOptions: {
+					ignore: ['.keep']
+				}
 			}
 		]),
 		new ImageminPlugin({
