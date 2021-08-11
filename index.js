@@ -17,18 +17,18 @@ const command = spawn('webpack', commandArgs, {
 	stdio: 'inherit'
 });
 
-command.stdout.on('data', data => {
-	console.log(`${data}`);
-});
+// command.stdout.on('data', data => {
+// 	console.log(`${data}`);
+// });
 
-command.stderr.on('data', data => {
-	console.log(`stderr: ${data}`);
-});
+// command.stderr.on('data', data => {
+// 	console.log(`stderr: ${data}`);
+// });
 
-command.on('error', (error) => {
-	console.log(`error: ${error.message}`);
-});
+// command.on('error', (error) => {
+// 	console.log(`error: ${error.message}`);
+// });
 
-command.on('close', code => {
-	console.log(`child process exited with code ${code}`);
-});
+// command.on('close', code => {
+// 	console.log(`child process exited with code ${code}`);
+// });
