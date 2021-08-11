@@ -109,7 +109,8 @@ const config = {
 						}
 					}
 				],
-				log: false
+				log: false,
+				logWarning: false
 			}
 		})
 	]
