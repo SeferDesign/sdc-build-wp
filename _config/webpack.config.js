@@ -123,7 +123,7 @@ if (package.sdc.browsersync) {
 		open: package.sdc.open || false,
 		reloadDelay: package.sdc.reloadDelay || 800,
 		files: [{
-			match: ['**/*.php', '_src/style/**/*', '_src/scripts/**/*.js'],
+			match: ['**/*.php', 'dist/**/*'],
 			fn: function(event, file) {
 				if (event === 'change') {
 					const bs = require('browser-sync').get('bs-webpack-plugin');
