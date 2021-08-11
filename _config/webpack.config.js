@@ -119,7 +119,7 @@ if (package.sdc.browsersync) {
 	const bspOptions = {
 		host: 'localhost',
 		port: package.sdc.port || 3000,
-		proxy: package.sdc.browsersync.localProxyURL,
+		proxy: package.sdc.browsersync.localProxyURL || false,
 		open: package.sdc.open || false,
 		reloadDelay: package.sdc.reloadDelay || 800,
 		files: [{
