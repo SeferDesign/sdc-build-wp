@@ -53,7 +53,6 @@ const config = {
 					{ loader: 'css-loader', options: {
 						url: false
 					} },
-					{ loader: 'group-css-media-queries-loader' },
 					{ loader: 'sass-loader' },
 					{ loader: 'postcss-loader', options: {
 						postcssOptions: {

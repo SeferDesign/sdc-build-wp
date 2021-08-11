@@ -17,7 +17,6 @@
     "eslint-loader": "^4.0.2",
     "extract-loader": "^5.1.0",
     "file-loader": "^6.2.0",
-    "group-css-media-queries-loader": "^3.0.2",
     "imagemin-webpack-plugin": "^2.4.2",
     "mini-css-extract-plugin": "^2.1.0",
     "minimist": "^1.2.5",
