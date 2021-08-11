@@ -57,7 +57,8 @@ const config = {
 					{ loader: 'postcss-loader', options: {
 						postcssOptions: {
 							plugins: [
-								require('autoprefixer')
+								require('autoprefixer'),
+								require('@hail2u/css-mqpacker')()
 							]
 						}
 					} }

@@ -7,6 +7,7 @@
     "sdc-build-wp": "./index.js"
   },
   "dependencies": {
+    "@hail2u/css-mqpacker": "github:hail2u/node-css-mqpacker",
     "autoprefixer": "^9.8.6",
     "browser-sync": "^2.27.4",
     "browser-sync-webpack-plugin": "^2.3.0",
@@ -21,6 +22,7 @@
     "mini-css-extract-plugin": "^2.1.0",
     "minimist": "^1.2.5",
     "node-sass": "^6.0.1",
+    "postcss": "^8.3.6",
     "postcss-loader": "^6.1.1",
     "remove-files-webpack-plugin": "^1.4.5",
     "replace-in-file-webpack-plugin": "^1.0.6",
