@@ -13,7 +13,9 @@ let commandArgs = [
 	(argv.watch ? '--watch' : null)
 ];
 
-const command = spawn('webpack', commandArgs);
+const command = spawn('webpack', commandArgs, {
+	stdio: 'inherit'
+});
 
 command.stdout.on('data', data => {
 	console.log(`${data}`);

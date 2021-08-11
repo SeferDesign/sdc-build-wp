@@ -28,10 +28,6 @@ const config = {
 		library: 'site'
 	},
 	mode: 'production',
-	// output: {
-	// 	filename: '[name].min.js',
-	// 	path: parentPath + '/dist'
-	// },
 	devtool: 'source-map',
 	resolve: {
 		extensions: ['.js', '.scss']
