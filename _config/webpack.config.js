@@ -28,7 +28,7 @@ const config = {
 		library: 'site'
 	},
 	mode: 'production',
-	stats: 'errors-only',
+	stats: 'errors-warnings',
 	devtool: 'source-map',
 	resolve: {
 		extensions: ['.js', '.scss']
