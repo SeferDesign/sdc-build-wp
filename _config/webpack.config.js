@@ -39,7 +39,9 @@ const config = {
 				test: /\.js$/,
 				exclude: /node_modules/,
 				use: [
-					{ loader: 'babel-loader' },
+					{ loader: 'esbuild-loader', options: {
+						target: 'es2015'
+					}},
 					{ loader: 'eslint-loader', options: {
 						configFile: pathConfig.resolve(__dirname, '.eslintrc'),
 						fix: true
