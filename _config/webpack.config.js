@@ -28,6 +28,7 @@ const config = {
 		library: 'site'
 	},
 	mode: 'production',
+	stats: 'errors-only',
 	devtool: 'source-map',
 	resolve: {
 		extensions: ['.js', '.scss']
@@ -107,7 +108,8 @@ const config = {
 							return new RegExp(/\.(js|js.map)$/, 'm').test(filePath);
 						}
 					}
-				]
+				],
+				log: false
 			}
 		})
 	]
