@@ -2,7 +2,6 @@ const pathConfig = require('path');
 const path = pathConfig.resolve(__dirname, '.');
 const parentPath = process.cwd();
 const package = require(process.cwd() + '/package.json');
-const notifier = require('node-notifier');
 const WebpackBar = require('webpackbar');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const StylelintPlugin = require('stylelint-webpack-plugin');
@@ -118,10 +117,10 @@ const config = {
 if (package.sdc.browsersync) {
 	const bspOptions = {
 		host: 'localhost',
-		port: package.sdc.port || 3000,
+		port: package.sdc.browsersync.port || 3000,
 		proxy: package.sdc.browsersync.localProxyURL || false,
-		open: package.sdc.open || false,
-		reloadDelay: package.sdc.reloadDelay || 800,
+		open: package.sdc.browsersync.open || false,
+		reloadDelay: package.sdc.browsersync.reloadDelay || 800,
 		files: [{
 			match: ['**/*.php', 'dist/**/*'],
 			fn: function(event, file) {

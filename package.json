@@ -21,7 +21,6 @@
     "imagemin-webpack-plugin": "^2.4.2",
     "mini-css-extract-plugin": "^2.1.0",
     "minimist": "^1.2.5",
-    "node-notifier": "^10.0.0",
     "node-sass": "^6.0.1",
     "postcss-loader": "^6.1.1",
     "remove-files-webpack-plugin": "^1.4.5",
