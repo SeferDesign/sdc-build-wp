@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const pathConfig = require('path');
 const path = pathConfig.resolve(__dirname, '.');
 const parentPath = process.cwd();
