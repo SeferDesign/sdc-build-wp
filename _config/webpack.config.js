@@ -20,6 +20,9 @@ for (const [name, files] of Object.entries(package.sdc.entries)) {
 }
 const config = {
 	entry: entries,
+	externals: {
+		jquery: 'jQuery'
+	},
 	output: {
 		filename: '[name].min.js',
 		path: parentPath + '/dist',
