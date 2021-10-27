@@ -74,6 +74,10 @@ const config = {
 		maxAssetSize: 512000
 	},
 	plugins: [
+		new webpack.ProvidePlugin({
+			$: 'jquery',
+			jQUery: 'jquery'
+		}),
 		new WebpackBar(),
 		new StylelintPlugin({
 			configFile: pathConfig.resolve(__dirname, '.stylelintrc'),
