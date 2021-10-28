@@ -86,4 +86,3 @@ buildFonts(parentPath + '/_src/fonts');
 if (argv.watch) {
 	buildBrowserSync();
 }
-
