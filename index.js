@@ -4,7 +4,7 @@ const path = pathConfig.resolve(__dirname, '.');
 const parentPath = process.cwd();
 const ourPackage = require(process.cwd() + '/package.json');
 const argv = require('minimist')(process.argv.slice(2));
-const watch = require('node-watch');
+const chokidar = require('chokidar');
 const glob = require('glob');
 
 const bustCache = require(path + '/lib/bustCache.js');
@@ -13,6 +13,10 @@ const buildJS = require(path + '/lib/scripts.js');
 const buildImages = require(path + '/lib/images.js');
 const buildFonts = require(path + '/lib/fonts.js');
 const buildBrowserSync = require(path + '/lib/browsersync.js');
+
+let chokidarOpts = {
+	ignoreInitial: true
+};
 
 function bustFunctionsCache() {
 	bustCache(parentPath + '/functions.php');
@@ -48,8 +52,8 @@ for (const [name, files] of Object.entries(entries)) {
 				buildJS(file);
 				bustFunctionsCache();
 				if (argv.watch) {
-					watch(file, { recursive: false }, function(evt, name) {
-						buildJS(name);
+					chokidar.watch(file, chokidarOpts).on('all', (event, path) => {
+						buildJS(path);
 						bustFunctionsCache();
 					});
 				}
@@ -63,17 +67,16 @@ filesSass.forEach((file) => {
 	bustFunctionsCache();
 });
 if (argv.watch) {
-	watch(parentPath + '/_src/style/', { recursive: true }, function(evt, name) {
+	chokidar.watch(parentPath + '/_src/style/**/*', chokidarOpts).on('all', (event, path) => {
 		filesSass.forEach((file) => {
 			buildSass(file);
 			bustFunctionsCache();
 		});
 	});
 }
-
 frontrunImages()
 if (argv.watch) {
-	watch(parentPath + '/_src/images/', { recursive: true }, function(evt, name) {
+	chokidar.watch(parentPath + '/_src/images/**/*', chokidarOpts).on('all', (event, path) => {
 		frontrunImages();
 	});
 }
