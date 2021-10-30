@@ -1,7 +1,16 @@
 {
   "name": "sdc-build-wp",
   "version": "1.0.7",
-  "description": "",
+  "description": "Custom WordPress build process.",
+	"author": {
+		"name": "Robert Sefer",
+		"email": "rob@seferdesign.com",
+		"url": "https://seferdesign.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/SeferDesign/sdc-build-wp.git"
+	},
 	"scripts": {
 		"test": "echo \"Skipping tests.\""
 	},
