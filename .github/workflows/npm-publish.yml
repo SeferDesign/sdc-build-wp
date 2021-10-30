@@ -4,8 +4,10 @@
 name: Node.js Package
 
 on:
-  release:
-    types: [created]
+  workflow_run:
+    workflows: ["CI tagged-release"]
+    types:
+      - completed
 
 jobs:
   build:
