@@ -22,6 +22,7 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
   build:
+    needs: tagged-release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
