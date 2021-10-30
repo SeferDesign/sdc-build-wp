@@ -1,7 +1,7 @@
 {
   "name": "sdc-build-wp",
   "version": "1.0.7",
-  "description": "Custom WordPress build process.",
+  "description": "Custom WordPress build process",
 	"author": {
 		"name": "Robert Sefer",
 		"email": "rob@seferdesign.com",
