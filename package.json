@@ -1,7 +1,6 @@
 {
   "name": "sdc-build-wp",
   "version": "1.0.1",
-  "private": true,
   "description": "",
   "bin": {
     "sdc-build-wp": "./index.js"
