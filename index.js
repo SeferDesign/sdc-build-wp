@@ -25,7 +25,7 @@ function frontrunImages() {
 		glob(block, {}, function(err, directory) {
 			directory.forEach((dir) => {
 				buildImages(dir);
-			})
+			});
 		});
 	});
 }
