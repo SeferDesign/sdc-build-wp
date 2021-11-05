@@ -2,18 +2,18 @@
   "name": "sdc-build-wp",
   "version": "1.1.0",
   "description": "Custom WordPress build process.",
-	"author": {
-		"name": "Robert Sefer",
-		"email": "rob@seferdesign.com",
-		"url": "https://seferdesign.com"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/SeferDesign/sdc-build-wp.git"
-	},
-	"scripts": {
-		"test": "echo \"Skipping tests.\""
-	},
+  "author": {
+    "name": "Robert Sefer",
+    "email": "rob@seferdesign.com",
+    "url": "https://seferdesign.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/SeferDesign/sdc-build-wp.git"
+  },
+  "scripts": {
+    "test": "echo \"Skipping tests.\""
+  },
   "bin": {
     "sdc-build-wp": "./index.js"
   },
@@ -23,6 +23,7 @@
     "chalk": "^4.1.2",
     "chokidar": "^3.5.2",
     "esbuild": "^0.13.11",
+    "eslint": "^8.1.0",
     "fs-extra": "^10.0.0",
     "glob": "^7.2.0",
     "imagemin": "^7.0.1",
