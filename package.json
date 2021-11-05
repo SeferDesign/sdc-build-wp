@@ -32,7 +32,9 @@
     "imagemin-svgo": "^9.0.0",
     "minimist": "^1.2.5",
     "postcss": "^8.3.11",
+    "postcss-scss": "^4.0.2",
     "postcss-sort-media-queries": "^4.1.0",
-    "sass": "^1.43.4"
+    "sass": "^1.43.4",
+    "stylelint": "^14.0.1"
   }
 }
