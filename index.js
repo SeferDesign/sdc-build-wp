@@ -1,16 +1,17 @@
 #!/usr/bin/env node
-const path = require('path');
-const project = require('./lib/project.js');
-const argv = require('minimist')(process.argv.slice(2));
-const chokidar = require('chokidar');
-const glob = require('glob');
+import path from 'path';
+import project from './lib/project.js';
+import parseArgs from 'minimist';
+const argv = parseArgs(process.argv.slice(2));
+import chokidar from 'chokidar';
+import glob from 'glob';
 
-const bustCache = require('./lib/bustCache.js');
-const buildSass = require('./lib/style.js');
-const buildJS = require('./lib/scripts.js');
-const buildImages = require('./lib/images.js');
-const buildFonts = require('./lib/fonts.js');
-const buildBrowserSync = require('./lib/browsersync.js');
+import bustCache from './lib/bustCache.js';
+import buildSass from './lib/style.js';
+import buildJS from './lib/scripts.js';
+import buildImages from './lib/images.js';
+import buildFonts from './lib/fonts.js';
+import buildBrowserSync from './lib/browsersync.js';
 
 let chokidarOpts = {
 	ignoreInitial: true
