@@ -23,8 +23,8 @@
     "browser-sync": "^2.27.7",
     "chalk": "^4.1.2",
     "chokidar": "^3.5.2",
-    "esbuild": "^0.13.11",
-    "eslint": "^8.1.0",
+    "esbuild": "^0.13.14",
+    "eslint": "^8.2.0",
     "fs-extra": "^10.0.0",
     "glob": "^7.2.0",
     "imagemin": "^7.0.1",
@@ -36,6 +36,6 @@
     "postcss-scss": "^4.0.2",
     "postcss-sort-media-queries": "^4.1.0",
     "sass": "^1.43.4",
-    "stylelint": "^14.0.1"
+    "stylelint": "^14.1.0"
   }
 }
