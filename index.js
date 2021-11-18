@@ -17,6 +17,9 @@ let chokidarOpts = {
 	ignoreInitial: true
 };
 
+let sassGlobPath = project.package?.sdc?.sassGlobPath || project.path + '/_src/style/**/*.scss';
+let sassGlob = glob.sync(sassGlobPath);
+
 function bustFunctionsCache() {
 	bustCache(project.path + '/functions.php');
 }
@@ -62,13 +65,13 @@ for (const [name, files] of Object.entries(entries)) {
 }
 
 filesSass.forEach((file) => {
-	buildSass(file);
+	buildSass(file, sassGlob);
 	bustFunctionsCache();
 });
 if (argv.watch) {
-	chokidar.watch(project.path + '/_src/style/**/*', chokidarOpts).on('all', (event, path) => {
+	chokidar.watch(sassGlob, chokidarOpts).on('all', (event, path) => {
 		filesSass.forEach((file) => {
-			buildSass(file);
+			buildSass(file, sassGlob);
 			bustFunctionsCache();
 		});
 	});
