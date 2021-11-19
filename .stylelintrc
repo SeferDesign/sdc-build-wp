@@ -1,15 +1,23 @@
 {
-  "rules": {
-    "indentation": "tab",
-    "max-empty-lines": 1,
-    "rule-empty-line-before": [
-      "always",
-      {
-        "ignore": [
-          "after-comment"
-        ]
-      }
-    ],
-    "color-no-invalid-hex": true
-  }
+	"rules": {
+		"indentation": "tab",
+		"max-empty-lines": 1,
+		"rule-empty-line-before": [
+			"always",
+			{
+				"ignore": [ "after-comment" ]
+			}
+		],
+		"block-opening-brace-space-before": "always-multi-line",
+		"block-opening-brace-newline-after": "always-multi-line",
+		"no-empty-first-line": true,
+		"selector-max-empty-lines": 0,
+		"color-function-notation": "modern",
+		"color-hex-length": "long",
+		"color-no-invalid-hex": true,
+		"color-named": "never",
+		"shorthand-property-no-redundant-values": true,
+		"number-leading-zero": "always",
+		"no-eol-whitespace": true
+	}
 }
