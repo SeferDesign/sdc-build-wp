@@ -18,7 +18,11 @@ let chokidarOpts = {
 };
 
 let sassGlobPath = project.package?.sdc?.sassGlobPath || project.path + '/_src/style/**/*.scss';
-let sassGlob = glob.sync(sassGlobPath);
+let sassGlob = glob.sync(sassGlobPath, {
+	ignore: [
+		project.path  + '/_src/style/partials/_colors.scss'
+	]
+});
 
 function bustFunctionsCache() {
 	bustCache(project.path + '/functions.php');
@@ -76,6 +80,15 @@ if (argv.watch) {
 		});
 	});
 }
+if (argv.watch) {
+	chokidar.watch(project.path + '/theme.json', chokidarOpts).on('all', (event, path) => {
+		filesSass.forEach((file) => {
+			buildSass(file, sassGlob);
+			bustFunctionsCache();
+		});
+	});
+}
+
 frontrunImages()
 if (argv.watch) {
 	chokidar.watch(project.path + '/_src/images/**/*', chokidarOpts).on('all', (event, path) => {
