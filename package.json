@@ -19,23 +19,23 @@
     "sdc-build-wp": "./index.js"
   },
   "dependencies": {
-    "autoprefixer": "^10.4.0",
-    "browser-sync": "^2.27.7",
-    "chalk": "^5.0.0",
-    "chokidar": "^3.5.2",
-    "esbuild": "^0.14.8",
-    "eslint": "^8.5.0",
-    "fs-extra": "^10.0.0",
-    "glob": "^7.2.0",
+    "autoprefixer": "^10.4.7",
+    "browser-sync": "^2.27.10",
+    "chalk": "^5.0.1",
+    "chokidar": "^3.5.3",
+    "esbuild": "^0.14.46",
+    "eslint": "^8.18.0",
+    "fs-extra": "^10.1.0",
+    "glob": "^8.0.3",
     "imagemin": "^8.0.1",
     "imagemin-jpegtran": "^7.0.0",
     "imagemin-pngquant": "^9.0.2",
     "imagemin-svgo": "^10.0.1",
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.6",
     "postcss": "^8.4.5",
-    "postcss-scss": "^4.0.2",
+    "postcss-scss": "^4.0.4",
     "postcss-sort-media-queries": "^4.2.1",
-    "sass": "^1.45.1",
-    "stylelint": "^14.2.0"
+    "sass": "^1.52.3",
+    "stylelint": "^14.9.1"
   }
 }
