@@ -20,7 +20,7 @@ let chokidarOpts = {
 let sassGlobPath = project.package?.sdc?.sassGlobPath || project.path + '/_src/style/**/*.scss';
 let sassGlob = glob.sync(sassGlobPath, {
 	ignore: [
-		project.path  + '/_src/style/partials/_colors.scss'
+		project.path  + '/_src/style/partials/_theme.scss'
 	]
 });
 
