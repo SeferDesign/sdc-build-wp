@@ -9,6 +9,7 @@ import glob from 'glob';
 import bustCache from './lib/bustCache.js';
 import buildSass from './lib/style.js';
 import buildJS from './lib/scripts.js';
+import buildBlocks from './lib/blocks.js';
 import buildImages from './lib/images.js';
 import buildFonts from './lib/fonts.js';
 import buildBrowserSync from './lib/browsersync.js';
@@ -23,6 +24,8 @@ let sassGlob = glob.sync(sassGlobPath, {
 		project.path  + '/_src/style/partials/_theme.scss'
 	]
 });
+let blockGlobPath = project.package?.sdc?.blockGlobPath || project.path + '/_src/blocks/**/*.{js,jsx}';
+let blockGlob = glob.sync(blockGlobPath);
 
 function bustFunctionsCache() {
 	bustCache(project.path + '/functions.php');
@@ -65,6 +68,15 @@ for (const [name, files] of Object.entries(entries)) {
 				}
 				break;
 		}
+	});
+}
+
+buildBlocks(blockGlob);
+bustFunctionsCache();
+if (argv.watch) {
+	chokidar.watch(blockGlob, chokidarOpts).on('all', (event, path) => {
+		buildBlocks(blockGlob);
+		bustFunctionsCache();
 	});
 }
 
