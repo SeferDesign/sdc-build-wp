@@ -18,7 +18,7 @@ let chokidarOpts = {
 	ignoreInitial: true
 };
 
-let sassGlobPath = project.package?.sdc?.sassGlobPath || project.path + '/_src/style/**/*.scss';
+let sassGlobPath = project.package?.sdc?.sassGlobPath || project.path + '{/_src/style,/blocks}/**/*.scss';
 let sassGlob = glob.sync(sassGlobPath, {
 	ignore: [
 		project.path  + '/_src/style/partials/_theme.scss'
@@ -48,6 +48,10 @@ for (const [name, files] of Object.entries(project.package.sdc.entries)) {
 		entries[name].push(project.path + file);
 	});
 }
+let sassBlocksGlob = glob.sync(project.path + '/blocks/*/*.scss');
+for (var filename of sassBlocksGlob) {
+	entries[`blocks/${path.basename(path.dirname(filename))}/style`] = [ filename ];
+}
 
 let filesSass = [];
 
@@ -55,7 +59,10 @@ for (const [name, files] of Object.entries(entries)) {
 	files.forEach(function(file) {
 		switch (path.parse(file).ext) {
 			case '.scss':
-				filesSass.push(file);
+				filesSass.push({
+					'name': name,
+					'file': file
+				});
 				break;
 			case '.js':
 				buildJS(file);
@@ -80,24 +87,22 @@ if (argv.watch) {
 	});
 }
 
-filesSass.forEach((file) => {
-	buildSass(file, sassGlob);
-	bustFunctionsCache();
-});
+function runSass() {
+	for (var block of filesSass) {
+		buildSass(block.file, block.name, sassGlob);
+		bustFunctionsCache();
+	}
+}
+
+runSass();
 if (argv.watch) {
 	chokidar.watch(sassGlob, chokidarOpts).on('all', (event, path) => {
-		filesSass.forEach((file) => {
-			buildSass(file, sassGlob);
-			bustFunctionsCache();
-		});
+		runSass();
 	});
 }
 if (argv.watch) {
 	chokidar.watch(project.path + '/theme.json', chokidarOpts).on('all', (event, path) => {
-		filesSass.forEach((file) => {
-			buildSass(file, sassGlob);
-			bustFunctionsCache();
-		});
+		runSass();
 	});
 }
 
