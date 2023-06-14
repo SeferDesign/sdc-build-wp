@@ -19,6 +19,7 @@
     "sdc-build-wp": "./index.js"
   },
   "dependencies": {
+    "@wordpress/scripts": "^26.6.0",
     "autoprefixer": "^10.4.13",
     "browser-sync": "^2.27.11",
     "chalk": "^5.2.0",

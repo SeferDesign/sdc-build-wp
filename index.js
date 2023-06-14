@@ -9,26 +9,29 @@ import glob from 'glob';
 import bustCache from './lib/bustCache.js';
 import buildSass from './lib/style.js';
 import buildJS from './lib/scripts.js';
-import buildBlocks from './lib/blocks.js';
+import buildBlock from './lib/blocks.js';
 import buildImages from './lib/images.js';
 import buildFonts from './lib/fonts.js';
 import buildBrowserSync from './lib/browsersync.js';
 
 let chokidarOpts = {
-	ignoreInitial: true
+	ignoreInitial: true,
+	ignored: [
+		project.path + '/blocks/*/build/**/*'
+	]
 };
 
 let sassGlobPath = project.package?.sdc?.sassGlobPath || project.path + '{/_src/style,/blocks}/**/*.scss';
 let sassGlob = glob.sync(sassGlobPath, {
 	ignore: [
-		project.path  + '/_src/style/partials/_theme.scss'
+		project.path + '/_src/style/partials/_theme.scss'
 	]
 });
 let jsGlobPath = project.package?.sdc?.jsGlobPath || project.path + '/_src/scripts/**/*.js';
 let jsGlob = glob.sync(jsGlobPath, {
 	ignore: []
 });
-let blockGlobPath = project.package?.sdc?.blockGlobPath || project.path + '/_src/blocks/**/*.{js,jsx}';
+let blockGlobPath = project.package?.sdc?.blockGlobPath || project.path + '/blocks/*';
 let blockGlob = glob.sync(blockGlobPath);
 
 function bustFunctionsCache() {
@@ -79,12 +82,17 @@ for (const [name, files] of Object.entries(entries)) {
 	});
 }
 
-buildBlocks(blockGlob);
-bustFunctionsCache();
+function runBlocks() {
+	for (var block of blockGlob) {
+		buildBlock(block);
+	}
+	bustFunctionsCache();
+}
+
+runBlocks();
 if (argv.watch) {
 	chokidar.watch(blockGlob, chokidarOpts).on('all', (event, path) => {
-		buildBlocks(blockGlob);
-		bustFunctionsCache();
+		runBlocks();
 	});
 }
 
