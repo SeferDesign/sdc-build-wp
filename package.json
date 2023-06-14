@@ -36,7 +36,7 @@
     "postcss": "^8.4.20",
     "postcss-scss": "^4.0.6",
     "postcss-sort-media-queries": "^4.3.0",
-    "sass": "^1.57.1",
+    "sass": "^1.63.4",
     "stylelint": "^14.16.0"
   }
 }
