@@ -7,7 +7,7 @@ import chokidar from 'chokidar';
 import glob from 'glob';
 
 import bustCache from './lib/bustCache.js';
-import buildSass from './lib/style.js';
+import { buildSass, buildSassTheme } from './lib/style.js';
 import buildJS from './lib/scripts.js';
 import buildBlock from './lib/blocks.js';
 import buildImages from './lib/images.js';
@@ -97,6 +97,7 @@ if (argv.watch) {
 }
 
 function runSass() {
+	buildSassTheme();
 	for (var block of filesSass) {
 		buildSass(block.file, block.name, sassGlob);
 		bustFunctionsCache();
