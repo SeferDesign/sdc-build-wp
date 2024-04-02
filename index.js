@@ -4,7 +4,7 @@ import project from './lib/project.js';
 import parseArgs from 'minimist';
 const argv = parseArgs(process.argv.slice(2));
 import chokidar from 'chokidar';
-import glob from 'glob';
+import { glob } from 'glob';
 
 import bustCache from './lib/bustCache.js';
 import { buildSass, buildSassTheme } from './lib/style.js';

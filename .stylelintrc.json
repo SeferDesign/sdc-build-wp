@@ -1,23 +1,26 @@
 {
+	"plugins": [
+		"@stylistic/stylelint-plugin"
+	],
 	"rules": {
-		"indentation": "tab",
-		"max-empty-lines": 1,
+		"@stylistic/indentation": "tab",
+		"@stylistic/max-empty-lines": 1,
 		"rule-empty-line-before": [
 			"always",
 			{
 				"ignore": [ "after-comment" ]
 			}
 		],
-		"block-opening-brace-space-before": "always-multi-line",
-		"block-opening-brace-newline-after": "always-multi-line",
-		"no-empty-first-line": true,
-		"selector-max-empty-lines": 0,
+		"@stylistic/block-opening-brace-space-before": "always-multi-line",
+		"@stylistic/block-opening-brace-newline-after": "always-multi-line",
+		"@stylistic/no-empty-first-line": true,
+		"@stylistic/selector-max-empty-lines": 0,
 		"color-function-notation": "modern",
 		"color-hex-length": "long",
 		"color-no-invalid-hex": true,
 		"color-named": "never",
 		"shorthand-property-no-redundant-values": true,
-		"number-leading-zero": "always",
-		"no-eol-whitespace": true
+		"@stylistic/number-leading-zero": "always",
+		"@stylistic/no-eol-whitespace": true
 	}
 }
