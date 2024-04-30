@@ -4,7 +4,7 @@ import project from './lib/project.js';
 import parseArgs from 'minimist';
 const argv = parseArgs(process.argv.slice(2));
 import chokidar from 'chokidar';
-import { glob } from 'glob';
+import { glob, globSync } from 'glob';
 
 import bustCache from './lib/bustCache.js';
 import { buildSass, buildSassTheme } from './lib/style.js';
@@ -22,28 +22,30 @@ let chokidarOpts = {
 };
 
 let sassGlobPath = project.package?.sdc?.sassGlobPath || project.path + '{/_src/style,/blocks}/**/*.scss';
-let sassGlob = glob.sync(sassGlobPath, {
+let sassGlob = globSync(sassGlobPath, {
 	ignore: [
 		project.path + '/_src/style/partials/_theme.scss'
 	]
 });
 let jsGlobPath = project.package?.sdc?.jsGlobPath || project.path + '/_src/scripts/**/*.js';
-let jsGlob = glob.sync(jsGlobPath, {
+let jsGlob = globSync(jsGlobPath, {
 	ignore: []
 });
 let blockGlobPath = project.package?.sdc?.blockGlobPath || project.path + '/blocks/*';
-let blockGlob = glob.sync(blockGlobPath);
+let blockGlob = globSync(blockGlobPath);
 
 function bustFunctionsCache() {
 	bustCache(project.path + '/functions.php');
 }
 
 function frontrunImages() {
-	[project.path + '/_src/images/', project.path + '/_src/images/**/*/'].forEach((block) => {
-		glob(block, {}, function(err, directory) {
-			directory.forEach((dir) => {
-				buildImages(dir);
-			});
+	[
+		project.path + '/_src/images/',
+		project.path + '/_src/images/**/*/'
+	].forEach((block) => {
+		const imageDirectories = globSync(block);
+		imageDirectories.forEach((dir) => {
+			buildImages(dir);
 		});
 	});
 }
@@ -55,7 +57,7 @@ for (const [name, files] of Object.entries(project.package.sdc.entries)) {
 		entries[name].push(project.path + file);
 	});
 }
-let sassBlocksGlob = glob.sync(project.path + '/blocks/*/*.scss');
+let sassBlocksGlob = globSync(project.path + '/blocks/*/*.scss');
 for (var filename of sassBlocksGlob) {
 	entries[`blocks/${path.basename(path.dirname(filename))}/style`] = [ filename ];
 }
