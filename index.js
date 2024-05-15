@@ -5,7 +5,10 @@ import parseArgs from 'minimist';
 const argv = parseArgs(process.argv.slice(2));
 import chokidar from 'chokidar';
 import { glob, globSync } from 'glob';
+import { existsSync } from 'node:fs';
+import { Tail } from 'tail';
 
+import log from './lib/logging.js';
 import bustCache from './lib/bustCache.js';
 import { buildSass, buildSassTheme } from './lib/style.js';
 import buildJS from './lib/scripts.js';
@@ -50,6 +53,28 @@ function frontrunImages() {
 	});
 }
 
+function runBlocks() {
+	for (var block of blockGlob) {
+		buildBlock(block);
+	}
+	bustFunctionsCache();
+}
+
+function runSass() {
+	buildSassTheme();
+	for (var block of filesSass) {
+		buildSass(block.file, block.name, sassGlob);
+		bustFunctionsCache();
+	}
+}
+
+function runJS() {
+	for (var block of filesJS) {
+		buildJS(block.file, block.name, jsGlob);
+		bustFunctionsCache();
+	}
+}
+
 let entries = {};
 for (const [name, files] of Object.entries(project.package.sdc.entries)) {
 	entries[name] = [];
@@ -84,64 +109,36 @@ for (const [name, files] of Object.entries(entries)) {
 	});
 }
 
-function runBlocks() {
-	for (var block of blockGlob) {
-		buildBlock(block);
-	}
-	bustFunctionsCache();
-}
-
 runBlocks();
-if (argv.watch) {
-	chokidar.watch(blockGlob, chokidarOpts).on('all', (event, path) => {
-		runBlocks();
-	});
-}
-
-function runSass() {
-	buildSassTheme();
-	for (var block of filesSass) {
-		buildSass(block.file, block.name, sassGlob);
-		bustFunctionsCache();
-	}
-}
-
 runSass();
-if (argv.watch) {
-	chokidar.watch(sassGlob, chokidarOpts).on('all', (event, path) => {
-		runSass();
-	});
-}
-
-function runJS() {
-	for (var block of filesJS) {
-		buildJS(block.file, block.name, jsGlob);
-		bustFunctionsCache();
-	}
-}
-
 runJS();
-if (argv.watch) {
-	chokidar.watch(jsGlob, chokidarOpts).on('all', (event, path) => {
-		runJS();
-	});
-}
-
-if (argv.watch) {
-	chokidar.watch(project.path + '/theme.json', chokidarOpts).on('all', (event, path) => {
-		runSass();
-	});
-}
-
 frontrunImages()
-if (argv.watch) {
-	chokidar.watch(project.path + '/_src/images/**/*', chokidarOpts).on('all', (event, path) => {
-		frontrunImages();
-	});
-}
-
 buildFonts(project.path + '/_src/fonts');
 
 if (argv.watch) {
 	buildBrowserSync();
+	chokidar.watch(blockGlob, chokidarOpts).on('all', (event, path) => {
+		runBlocks();
+	});
+	chokidar.watch(sassGlob, chokidarOpts).on('all', (event, path) => {
+		runSass();
+	});
+	chokidar.watch(project.path + '/theme.json', chokidarOpts).on('all', (event, path) => {
+		runSass();
+	});
+	chokidar.watch(jsGlob, chokidarOpts).on('all', (event, path) => {
+		runJS();
+	});
+	chokidar.watch(project.path + '/_src/images/**/*', chokidarOpts).on('all', (event, path) => {
+		frontrunImages();
+	});
+	let errorLogPath = process.env.ERROR_LOG_PATH || project.package.sdc?.error_log_path || '../../../../../logs/php/error.log';
+	if (existsSync(errorLogPath)) {
+		let errorLogTail = new Tail(errorLogPath);
+		errorLogTail.on('line', function(data) {
+			log('php', data);
+		});
+	} else {
+		log('info', `Cannot find error log @ ${errorLogPath}. Skipping watching php error logs`);
+	}
 }
