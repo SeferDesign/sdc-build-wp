@@ -3,7 +3,7 @@
 	"version": "3.5.1",
 	"description": "Custom WordPress build process.",
 	"engines": {
-		"node": "^20"
+		"node": ">=20"
 	},
 	"author": {
 		"name": "Robert Sefer",
