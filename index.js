@@ -12,7 +12,7 @@ import log from './lib/logging.js';
 import bustCache from './lib/bustCache.js';
 import { buildSass, buildSassTheme } from './lib/style.js';
 import buildJS from './lib/scripts.js';
-import buildPHP from './lib/php.js';
+import { default as buildPHP, shouldPHPLint } from './lib/php.js';
 import buildBlock from './lib/blocks.js';
 import buildImages from './lib/images.js';
 import buildFonts from './lib/fonts.js';
@@ -27,7 +27,6 @@ let chokidarOpts = {
 	]
 };
 
-let shouldPHPLint = typeof project.package.sdc?.php === 'undefined' || typeof project.package.sdc?.php.enabled === 'undefined' || project.package.sdc?.php.enabled == true;
 let phpGlobPath = project.package?.sdc?.phpGlobPath || project.path + '/**/*.php';
 let phpGlob = globSync(phpGlobPath, {
 	ignore: [
