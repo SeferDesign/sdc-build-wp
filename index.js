@@ -12,6 +12,7 @@ import log from './lib/logging.js';
 import bustCache from './lib/bustCache.js';
 import { buildSass, buildSassTheme } from './lib/style.js';
 import buildJS from './lib/scripts.js';
+import buildPHP from './lib/php.js';
 import buildBlock from './lib/blocks.js';
 import buildImages from './lib/images.js';
 import buildFonts from './lib/fonts.js';
@@ -20,10 +21,20 @@ import buildBrowserSync from './lib/browsersync.js';
 let chokidarOpts = {
 	ignoreInitial: true,
 	ignored: [
+		project.path + '/node_modules',
+		project.path + '/vendor',
 		project.path + '/blocks/*/build/**/*'
 	]
 };
 
+let shouldPHPLint = typeof project.package.sdc?.php === 'undefined' || typeof project.package.sdc?.php.enabled === 'undefined' || project.package.sdc?.php.enabled == true;
+let phpGlobPath = project.package?.sdc?.phpGlobPath || project.path + '/**/*.php';
+let phpGlob = globSync(phpGlobPath, {
+	ignore: [
+		project.path + '/node_modules',
+		project.path + '/vendor'
+	]
+});
 let sassGlobPath = project.package?.sdc?.sassGlobPath || project.path + '{/_src/style,/blocks}/**/*.scss';
 let sassGlob = globSync(sassGlobPath, {
 	ignore: [
@@ -75,6 +86,10 @@ function runJS() {
 	}
 }
 
+function runPHP(file, method) {
+	buildPHP(file, method);
+}
+
 let entries = {};
 for (const [name, files] of Object.entries(project.package.sdc.entries)) {
 	entries[name] = [];
@@ -109,6 +124,9 @@ for (const [name, files] of Object.entries(entries)) {
 	});
 }
 
+// if (shouldPHPLint) {
+// 	runPHP(null, 'warn'); // this errors "Fatal error: Allowed memory size"
+// }
 runBlocks();
 runSass();
 runJS();
@@ -140,5 +158,10 @@ if (argv.watch) {
 		});
 	} else {
 		log('info', `Cannot find error log @ ${errorLogPath}. Skipping watching php error logs`);
+	}
+	if (shouldPHPLint) {
+		chokidar.watch(phpGlob, chokidarOpts).on('change', (path) => {
+			runPHP(path);
+		});
 	}
 }
