@@ -35,8 +35,7 @@ let chokidarOpts = {
 	ignored: [
 		paths.nodeModules,
 		paths.composer.vendor,
-		paths.theme.scss,
-		project.path + '/blocks/*/build/**/*',
+		paths.theme.scss
 	]
 };
 
@@ -91,6 +90,13 @@ let builds = argv.builds ? argv.builds.split(',') : [
 			glob(project.package?.sdc?.jsGlobPath ||
 			`${project.path}/**/*.php`)
 		);
+		globs.blocksPHP = await Array.fromAsync(
+			glob(`${project.path}/blocks/*/build/*.php`)
+		);
+		chokidarOpts.ignored = [
+			...chokidarOpts.ignored,
+			...globs.blocksPHP
+		];
 	}
 
 	for (const [name, files] of Object.entries(project.package.sdc.entries)) {
