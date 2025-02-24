@@ -9,7 +9,6 @@ import { existsSync } from 'node:fs';
 import { Tail } from 'tail';
 
 import log from './lib/logging.js';
-import bustCache from './lib/bustCache.js';
 import { buildSass, buildSassTheme } from './lib/style.js';
 import buildJS from './lib/scripts.js';
 import { default as buildPHP, shouldPHPLint } from './lib/php.js';
@@ -205,10 +204,6 @@ let builds = argv.builds ? argv.builds.split(',') : [
 
 })();
 
-async function bustFunctionsCache() {
-	await bustCache(`${project.path}/functions.php`);
-}
-
 async function frontrunImages() {
 	globs.imageDirectories.forEach(directory => {
 		buildImages(directory);
@@ -223,7 +218,6 @@ async function runBlocks(singleBlock) {
 			await buildBlock(block);
 		}
 	}
-	await bustFunctionsCache();
 }
 
 async function runSass(buildTheme = true) {
@@ -232,14 +226,12 @@ async function runSass(buildTheme = true) {
 	}
 	for (var block of filesSass) {
 		await buildSass(block.file, block.name, globs.sass);
-		await bustFunctionsCache();
 	}
 }
 
 async function runJS() {
 	for (var block of filesJS) {
 		await buildJS(block.file, block.name, globs.js);
-		bustFunctionsCache();
 	}
 }
 
