@@ -55,6 +55,9 @@ let builds = argv.builds ? argv.builds.split(',') : [
 
 (async() => {
 
+	let initialBuildTimerStart = Date.now();
+	log('info', `Starting initial build`);
+
 	if (builds.includes('sass')) {
 		globs.sass = await Array.fromAsync(
 			glob(project.package?.sdc?.sassGlobPath ||
@@ -151,6 +154,8 @@ let builds = argv.builds ? argv.builds.split(',') : [
 	// 	await runPHP(null, 'warn'); // this errors "Fatal error: Allowed memory size"
 	// }
 
+	log('info', `Finished initial build in ${Math.round((Date.now() - initialBuildTimerStart) / 1000)} seconds`);
+
 	if (argv.watch) {
 
 		buildBrowserSync();
@@ -211,9 +216,9 @@ let builds = argv.builds ? argv.builds.split(',') : [
 })();
 
 async function frontrunImages() {
-	globs.imageDirectories.forEach(directory => {
-		buildImages(directory);
-	});
+	for (var directory of globs.imageDirectories) {
+		await buildImages(directory);
+	}
 }
 
 async function runBlocks(singleBlock) {
