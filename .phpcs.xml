@@ -51,6 +51,5 @@
 	</rule>
 	<rule ref="Squiz.WhiteSpace.SemicolonSpacing"/>
 	<rule ref="Squiz.WhiteSpace.SuperfluousWhitespace"/>
-	<rule ref="Universal.NamingConventions.NoReservedKeywordParameterNames"/>
 
 </ruleset>
