@@ -225,18 +225,16 @@ let builds = argv.builds ? argv.builds.split(',') : [
 })();
 
 async function frontrunImages() {
-	for (var directory of globs.imageDirectories) {
-		await buildImages(directory);
-	}
+	const promisesImages = globs.imageDirectories.map(directory => buildImages(directory));
+	await Promise.all(promisesImages);
 }
 
 async function runBlocks(singleBlock) {
 	if (singleBlock) {
 		await buildBlock(singleBlock);
 	} else {
-		for (var block of globs.blocks) {
-			await buildBlock(block);
-		}
+		const promisesBlocks = globs.blocks.map(block => buildBlock(block));
+		await Promise.all(promisesBlocks);
 	}
 }
 
@@ -255,9 +253,8 @@ async function runSass(singleEntry, buildTheme = true) {
 }
 
 async function runJS() {
-	for (var block of filesJS) {
-		await buildJS(block.file, block.name, globs.js);
-	}
+	const promisesJS = filesJS.map(block => buildJS(block.file, block.name, globs.js));
+	await Promise.all(promisesJS);
 }
 
 async function runPHP(file, method) {
