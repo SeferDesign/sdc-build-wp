@@ -9,7 +9,7 @@ import { existsSync } from 'node:fs';
 import { Tail } from 'tail';
 
 import log from './lib/logging.js';
-import { buildSass, buildSassTheme } from './lib/style.js';
+import { buildSass, buildSassTheme, getImportedFiles as getImportedFilesSass } from './lib/style.js';
 import buildJS from './lib/scripts.js';
 import { default as buildPHP, shouldPHPLint } from './lib/php.js';
 import buildBlock from './lib/blocks.js';
@@ -77,6 +77,9 @@ let builds = argv.builds ? argv.builds.split(',') : [
 		globs.blocksSass = await Array.fromAsync(
 			glob(`${project.path}/blocks/*/src/*.scss`)
 		);
+		// for (var filename of globs.blocksSass) {
+		// 	entries[`blocks/${path.basename(path.dirname(filename))}/style`] = [ filename ];
+		// }
 	}
 	if (builds.includes('images')) {
 		globs.images = await Array.fromAsync(
@@ -108,9 +111,6 @@ let builds = argv.builds ? argv.builds.split(',') : [
 			entries[name].push(project.path + file);
 		});
 	}
-	// for (var filename of globs.blocksSass) {
-	// 	entries[`blocks/${path.basename(path.dirname(filename))}/style`] = [ filename ];
-	// }
 
 	for (const [name, files] of Object.entries(entries)) {
 		files.forEach(function(file) {
@@ -136,7 +136,7 @@ let builds = argv.builds ? argv.builds.split(',') : [
 	}
 
 	if (builds.includes('sass')) {
-		await runSass(true);
+		await runSass(null, true);
 	}
 	if (builds.includes('js')) {
 		await runJS();
@@ -167,7 +167,16 @@ let builds = argv.builds ? argv.builds.split(',') : [
 			], {
 				...chokidarOpts
 			}).on('all', (event, path) => {
-				runSass(path == paths.theme.json);
+				let hasRanSingle = false;
+				for (var block of filesSass) {
+					if (path == block.file || getImportedFilesSass(block.file).includes(path)) {
+						runSass(block.file, path == paths.theme.json);
+						hasRanSingle = true;
+					}
+				}
+				if (!hasRanSingle) {
+					runSass(null, path == paths.theme.json);
+				}
 			});
 		}
 
@@ -231,12 +240,17 @@ async function runBlocks(singleBlock) {
 	}
 }
 
-async function runSass(buildTheme = true) {
+async function runSass(singleEntry, buildTheme = true) {
 	if (buildTheme) {
 		await buildSassTheme();
 	}
 	for (var block of filesSass) {
-		await buildSass(block.file, block.name, globs.sass);
+		if (!singleEntry || singleEntry == block.file) {
+			await buildSass(block.file, block.name, globs.sass);
+			if (singleEntry == block.file) {
+				break;
+			}
+		}
 	}
 }
 
