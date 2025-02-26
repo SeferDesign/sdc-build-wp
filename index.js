@@ -17,33 +17,6 @@ import buildImages from './lib/images.js';
 import buildFonts from './lib/fonts.js';
 import buildBrowserSync from './lib/browsersync.js';
 
-let paths = {
-	theme: {
-		json: `${project.path}/theme.json`,
-		scss: `${project.path}/_src/style/partials/_theme.scss`
-	},
-	nodeModules: `${project.path}/node_modules`,
-	composer: {
-		vendor: `${project.path}/vendor`
-	},
-	images: project.package?.sdc?.imagesPath || `${project.path}/_src/images`,
-	errorLog: process.env.ERROR_LOG_PATH || project.package.sdc?.error_log_path || '../../../../../logs/php/error.log'
-};
-
-let chokidarOpts = {
-	ignoreInitial: true,
-	ignored: [
-		paths.nodeModules,
-		paths.composer.vendor,
-		paths.theme.scss
-	]
-};
-
-let globs = {};
-let entries = {};
-let filesSass = [];
-let filesJS = [];
-
 let builds = argv.builds ? argv.builds.split(',') : [
 	'sass',
 	'js',
@@ -59,65 +32,65 @@ let builds = argv.builds ? argv.builds.split(',') : [
 	log('info', `Starting initial build`);
 
 	if (builds.includes('sass')) {
-		globs.sass = await Array.fromAsync(
+		project.globs.sass = await Array.fromAsync(
 			glob(project.package?.sdc?.sassGlobPath ||
 			`${project.path}{/_src/style,/blocks}/**/*.scss`)
 		);
 	}
 	if (builds.includes('js')) {
-		globs.js = await Array.fromAsync(
+		project.globs.js = await Array.fromAsync(
 			glob(project.package?.sdc?.jsGlobPath ||
 			`${project.path}/_src/scripts/**/*.js`)
 		);
 	}
 	if (builds.includes('blocks')) {
-		globs.blocks = await Array.fromAsync(
+		project.globs.blocks = await Array.fromAsync(
 			glob(`${project.path}/blocks/*`)
 		);
-		globs.blocksSass = await Array.fromAsync(
+		project.globs.blocksSass = await Array.fromAsync(
 			glob(`${project.path}/blocks/*/src/*.scss`)
 		);
-		// for (var filename of globs.blocksSass) {
-		// 	entries[`blocks/${path.basename(path.dirname(filename))}/style`] = [ filename ];
+		// for (var filename of project.globs.blocksSass) {
+		// 	project.entries[`blocks/${path.basename(path.dirname(filename))}/style`] = [ filename ];
 		// }
 	}
 	if (builds.includes('images')) {
-		globs.images = await Array.fromAsync(
+		project.globs.images = await Array.fromAsync(
 			glob(project.package?.sdc?.imagesPath ||
-			`${paths.images}/**/*`)
+			`${project.paths.images}/**/*`)
 		);
-		globs.imageDirectories = [
-			paths.images,
-			...await getAllSubdirectories(paths.images)
+		project.globs.imageDirectories = [
+			project.paths.images,
+			...await getAllSubdirectories(project.paths.images)
 		];
 	}
 	if (builds.includes('php')) {
-		globs.php = await Array.fromAsync(
+		project.globs.php = await Array.fromAsync(
 			glob(project.package?.sdc?.jsGlobPath ||
 			`${project.path}/**/*.php`)
 		);
-		globs.blocksPHP = await Array.fromAsync(
+		project.globs.blocksPHP = await Array.fromAsync(
 			glob(`${project.path}/blocks/*/build/*.php`)
 		);
-		chokidarOpts.ignored = [
-			...chokidarOpts.ignored,
-			...globs.blocksPHP
+		project.chokidarOpts.ignored = [
+			...project.chokidarOpts.ignored,
+			...project.globs.blocksPHP
 		];
 	}
 
 	for (const [name, files] of Object.entries(project.package.sdc.entries)) {
-		entries[name] = [];
+		project.entries[name] = [];
 		files.forEach(function(file) {
-			entries[name].push(project.path + file);
+			project.entries[name].push(project.path + file);
 		});
 	}
 
-	for (const [name, files] of Object.entries(entries)) {
+	for (const [name, files] of Object.entries(project.entries)) {
 		files.forEach(function(file) {
 			switch (path.parse(file).ext) {
 				case '.scss':
 					if (builds.includes('sass')) {
-						filesSass.push({
+						project.files.sass.push({
 							'name': name,
 							'file': file
 						});
@@ -125,7 +98,7 @@ let builds = argv.builds ? argv.builds.split(',') : [
 					break;
 				case '.js':
 					if (builds.includes('js')) {
-						filesJS.push({
+						project.files.js.push({
 							'name': name,
 							'file': file
 						});
@@ -162,36 +135,36 @@ let builds = argv.builds ? argv.builds.split(',') : [
 
 		if (builds.includes('sass')) {
 			chokidar.watch([
-				...[paths.theme.json],
-				globs.sass
+				...[project.paths.theme.json],
+				project.globs.sass
 			], {
-				...chokidarOpts
+				...project.chokidarOpts
 			}).on('all', (event, path) => {
 				let hasRanSingle = false;
-				for (var block of filesSass) {
-					if (path == block.file || getImportedFilesSass(block.file).includes(path)) {
-						runSass(block.file, path == paths.theme.json);
+				for (var block of project.files.sass) {
+					if (path == block.file || getImportedproject.files.sass(block.file).includes(path)) {
+						runSass(block.file, path == project.paths.theme.json);
 						hasRanSingle = true;
 					}
 				}
 				if (!hasRanSingle) {
-					runSass(null, path == paths.theme.json);
+					runSass(null, path == project.paths.theme.json);
 				}
 			});
 		}
 
 		if (builds.includes('js')) {
-			chokidar.watch(globs.js, {
-				...chokidarOpts
+			chokidar.watch(project.globs.js, {
+				...project.chokidarOpts
 			}).on('all', (event, path) => {
 				runJS();
 			});
 		}
 
 		if (builds.includes('blocks')) {
-			for (let block of globs.blocks) {
+			for (let block of project.globs.blocks) {
 				chokidar.watch(`${block}/src`, {
-					...chokidarOpts
+					...project.chokidarOpts
 				}).on('all', (event, path) => {
 					runBlocks(block);
 				});
@@ -199,33 +172,33 @@ let builds = argv.builds ? argv.builds.split(',') : [
 		}
 
 		if (builds.includes('images')) {
-			chokidar.watch(paths.images, chokidarOpts).on('all', (event, path) => {
+			chokidar.watch(project.paths.images, project.chokidarOpts).on('all', (event, path) => {
 				frontrunImages();
 			});
 		}
 
 		if (builds.includes('php') && shouldPHPLint) {
-			chokidar.watch(globs.php, {
-				...chokidarOpts
+			chokidar.watch(project.globs.php, {
+				...project.chokidarOpts
 			}).on('all', (event, path) => {
 				runPHP(path);
 			});
 		}
 
-		if (existsSync(paths.errorLog)) {
-			let errorLogTail = new Tail(paths.errorLog);
+		if (existsSync(project.paths.errorLog)) {
+			let errorLogTail = new Tail(project.paths.errorLog);
 			errorLogTail.on('line', function(data) {
 				log('php', data);
 			});
 		} else {
-			log('info', `Cannot find error log @ ${paths.errorLog}. Skipping watching php error logs`);
+			log('info', `Cannot find error log @ ${project.paths.errorLog}. Skipping watching php error logs`);
 		}
 	}
 
 })();
 
 async function frontrunImages() {
-	const promisesImages = globs.imageDirectories.map(directory => buildImages(directory));
+	const promisesImages = project.globs.imageDirectories.map(directory => buildImages(directory));
 	await Promise.all(promisesImages);
 }
 
@@ -233,7 +206,7 @@ async function runBlocks(singleBlock) {
 	if (singleBlock) {
 		await buildBlock(singleBlock);
 	} else {
-		const promisesBlocks = globs.blocks.map(block => buildBlock(block));
+		const promisesBlocks = project.globs.blocks.map(block => buildBlock(block));
 		await Promise.all(promisesBlocks);
 	}
 }
@@ -242,9 +215,9 @@ async function runSass(singleEntry, buildTheme = true) {
 	if (buildTheme) {
 		await buildSassTheme();
 	}
-	for (var block of filesSass) {
+	for (var block of project.files.sass) {
 		if (!singleEntry || singleEntry == block.file) {
-			await buildSass(block.file, block.name, globs.sass);
+			await buildSass(block.file, block.name, project.globs.sass);
 			if (singleEntry == block.file) {
 				break;
 			}
@@ -253,7 +226,7 @@ async function runSass(singleEntry, buildTheme = true) {
 }
 
 async function runJS() {
-	const promisesJS = filesJS.map(block => buildJS(block.file, block.name, globs.js));
+	const promisesJS = project.files.js.map(block => buildJS(block.file, block.name, project.globs.js));
 	await Promise.all(promisesJS);
 }
 
