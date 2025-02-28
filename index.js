@@ -7,29 +7,20 @@ import project from './lib/project.js';
 import log from './lib/logging.js';
 import * as LibComponents from './lib/components/index.js';
 
-project.components = {
-	style: new LibComponents.style(),
-	scripts: new LibComponents.scripts(),
-	blocks: new LibComponents.blocks(),
-	images: new LibComponents.images(),
-	fonts: new LibComponents.fonts(),
-	php: new LibComponents.php(),
-	server: new LibComponents.server()
-};
-
-let builds = argv.builds ? argv.builds.split(',') : Object.keys(project.components).map(key => project.components[key].slug);
+project.components = Object.fromEntries(Object.entries(LibComponents).map(([name, Class]) => [name, new Class()]));
+project.builds = argv.builds ? argv.builds.split(',') : Object.keys(project.components);
 
 (async() => {
 
 	let initialBuildTimerStart = Date.now();
 	log('info', `Starting initial build`);
-	for (let build of builds) {
+	for (let build of project.builds) {
 		await project.components[build].init();
 	}
 	log('info', `Finished initial build in ${Math.round((Date.now() - initialBuildTimerStart) / 1000)} seconds`);
 
 	if (argv.watch) {
-		for (let build of builds) {
+		for (let build of project.builds) {
 			await project.components[build].watch();
 		}
 		try {
