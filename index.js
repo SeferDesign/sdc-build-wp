@@ -8,6 +8,31 @@ import log from './lib/logging.js';
 import * as LibComponents from './lib/components/index.js';
 
 project.components = Object.fromEntries(Object.entries(LibComponents).map(([name, Class]) => [name, new Class()]));
+
+if (argv.help || argv.h) {
+console.log(`
+Usage: sdc-build-wp [options] [arguments]
+
+Options:
+  -h, --help					Show help message and exit
+  -w, --watch					Build and watch
+  -b, --build BUILDS  Build with specific components
+
+Components:
+
+${Object.entries(project.components).map(([key, component]) => {
+	return `${key}\t\t${component.description}\r\n`;
+}).join('')}
+Examples:
+
+sdc-build-wp
+sdc-build-wp --watch
+sdc-build-wp --watch --builds=style,scripts
+`);
+
+process.exit(0);
+}
+
 project.builds = argv.builds ? argv.builds.split(',') : Object.keys(project.components);
 
 (async() => {
@@ -19,7 +44,7 @@ project.builds = argv.builds ? argv.builds.split(',') : Object.keys(project.comp
 	}
 	log('info', `Finished initial build in ${Math.round((Date.now() - initialBuildTimerStart) / 1000)} seconds`);
 
-	if (argv.watch) {
+	if (argv.watch || argv.w) {
 		for (let build of project.builds) {
 			await project.components[build].watch();
 		}
