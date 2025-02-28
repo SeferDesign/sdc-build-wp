@@ -14,9 +14,9 @@ console.log(`
 Usage: sdc-build-wp [options] [arguments]
 
 Options:
-  -h, --help					Show help message and exit
-  -w, --watch					Build and watch
-  -b, --build BUILDS  Build with specific components
+  -h, --help           Show help message and exit
+  -w, --watch          Build and watch
+  -b, --build BUILDS   Build with specific components
 
 Components:
 
@@ -44,8 +44,8 @@ project.builds = argv.builds ? argv.builds.split(',') : Object.keys(project.comp
 	}
 	log('info', `Finished initial build in ${Math.round((Date.now() - initialBuildTimerStart) / 1000)} seconds`);
 
-	if (argv.watch || argv.w) {
-		for (let build of project.builds) {
+	if (argv.watch) {
+		for (let build of builds) {
 			await project.components[build].watch();
 		}
 		try {
