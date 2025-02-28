@@ -29,32 +29,22 @@ let builds = argv.builds ? argv.builds.split(',') : [
 
 for (const [name, files] of Object.entries(project.package.sdc.entries)) {
 	project.entries[name] = [];
-	files.forEach(function(file) {
-		project.entries[name].push(project.path + file);
-	});
-}
-
-for (const [name, files] of Object.entries(project.entries)) {
-	files.forEach(function(file) {
-		switch (path.parse(file).ext) {
-			case '.scss':
-				if (builds.includes('sass')) {
-					project.files.sass.push({
-						'name': name,
-						'file': file
-					});
-				}
-				break;
-			case '.js':
-				if (builds.includes('js')) {
-					project.files.js.push({
-						'name': name,
-						'file': file
-					});
-				}
-				break;
+	for (let file of files) {
+		let fullPath = project.path + file;
+		project.entries[name].push(fullPath);
+		let extension = path.parse(fullPath).ext;
+		if (builds.includes('sass') && extension == '.scss') {
+			project.files.sass.push({
+				'name': name,
+				'file': fullPath
+			});
+		} else if (builds.includes('js') && extension == '.js') {
+			project.files.js.push({
+				'name': name,
+				'file': fullPath
+			});
 		}
-	});
+	}
 }
 
 (async() => {
