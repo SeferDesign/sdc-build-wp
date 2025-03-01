@@ -44,7 +44,7 @@ project.builds = argv.builds ? argv.builds.split(',') : Object.keys(project.comp
 (async() => {
 
 	let initialBuildTimerStart = Date.now();
-	log('info', `Starting initial build [${project.builds.join(', ')}]`);
+	log('info', `Started initial build [${project.builds.join(', ')}]`);
 	for (let build of project.builds) {
 		await project.components[build].init();
 	}
