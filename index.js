@@ -51,7 +51,7 @@ project.builds = argv.builds ? argv.builds.split(',') : Object.keys(project.comp
 	log('info', `Finished initial build in ${Math.round((Date.now() - initialBuildTimerStart) / 1000)} seconds`);
 
 	if (argv.watch) {
-		for (let build of builds) {
+		for (let build of project.builds) {
 			await project.components[build].watch();
 		}
 		try {
