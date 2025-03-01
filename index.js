@@ -45,14 +45,16 @@ project.builds = argv.builds ? argv.builds.split(',') : Object.keys(project.comp
 
 	let initialBuildTimerStart = Date.now();
 	log('info', `Starting initial build [${project.builds.join(', ')}]`);
-	const promisesBuilds = project.builds.map(build => project.components[build].init());
-	await Promise.all(promisesBuilds);
+	for (let build of project.builds) {
+		await project.components[build].init();
+	}
 	log('info', `Finished initial build in ${Math.round((Date.now() - initialBuildTimerStart) / 1000)} seconds`);
 
 	if (argv.watch) {
 		log('info', `Started watching [${project.builds.join(', ')}]`);
-		const promisesWatches = project.builds.map(build => project.components[build].watch());
-		await Promise.all(promisesWatches);
+		for (let build of project.builds) {
+			await project.components[build].watch();
+		}
 		try {
 			await fs.access(project.paths.errorLog);
 			new Tail(project.paths.errorLog).on('line', function(data) {
