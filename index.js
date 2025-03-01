@@ -44,12 +44,13 @@ project.builds = argv.builds ? argv.builds.split(',') : Object.keys(project.comp
 (async() => {
 
 	let initialBuildTimerStart = Date.now();
-	log('info', `Starting initial build`);
+	log('info', `Starting initial build [${project.builds.join(', ')}]`);
 	const promisesBuilds = project.builds.map(build => project.components[build].init());
 	await Promise.all(promisesBuilds);
 	log('info', `Finished initial build in ${Math.round((Date.now() - initialBuildTimerStart) / 1000)} seconds`);
 
 	if (argv.watch) {
+		log('info', `Started watching [${project.builds.join(', ')}]`);
 		const promisesWatches = project.builds.map(build => project.components[build].watch());
 		await Promise.all(promisesWatches);
 		try {
