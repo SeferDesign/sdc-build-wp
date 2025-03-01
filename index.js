@@ -63,3 +63,12 @@ project.builds = argv.builds ? argv.builds.split(',') : Object.keys(project.comp
 	}
 
 })();
+
+process.on('SIGINT', function() {
+	console.log(`\r`);
+	if (project.components.server?.server) {
+		project.components.server.server.exit();
+	}
+	log('info', `Exiting sdc-build-wp`);
+	process.exit(0);
+});
