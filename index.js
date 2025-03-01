@@ -17,9 +17,9 @@ Usage: sdc-build-wp [options] [arguments]
 
 Options:
   -h, --help           Show help message and exit
-	-v, --version        Version
+  -v, --version        Version
   -w, --watch          Build and watch
-  -b, --build BUILDS   Build with specific components
+  -b, --builds BUILDS  Build with specific components
 
 Components:
 
@@ -39,7 +39,7 @@ console.log(JSON.parse(await fs.readFile(path.join(path.dirname(fileURLToPath(im
 process.exit(0);
 }
 
-project.builds = argv.builds ? argv.builds.split(',') : Object.keys(project.components);
+project.builds = argv.builds ? (Array.isArray(argv.builds) ? argv.builds : argv.builds.split(',')) : Object.keys(project.components);
 
 (async() => {
 
