@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import parseArgs from 'minimist';
 const argv = parseArgs(process.argv.slice(2));
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { promises as fs } from 'fs';
 import { Tail } from 'tail';
 import project from './lib/project.js';
@@ -15,6 +17,7 @@ Usage: sdc-build-wp [options] [arguments]
 
 Options:
   -h, --help           Show help message and exit
+	-v, --version        Version
   -w, --watch          Build and watch
   -b, --build BUILDS   Build with specific components
 
@@ -30,6 +33,9 @@ sdc-build-wp --watch
 sdc-build-wp --watch --builds=style,scripts
 `);
 
+process.exit(0);
+} else if (argv.version || argv.v) {
+console.log(JSON.parse(await fs.readFile(path.join(path.dirname(fileURLToPath(import.meta.url)), 'package.json'))).version);
 process.exit(0);
 }
 
