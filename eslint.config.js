@@ -1,23 +1,25 @@
-export default [
+import { defineConfig } from 'eslint/config';
+
+export default defineConfig([
 	{
 		languageOptions: {
 			parserOptions: {
-				ecmaVersion: "latest",
-				sourceType: "module",
+				ecmaVersion: 'latest',
+				sourceType: 'module',
 				ecmaFeatures: {
-					jsx: true,
-				},
-			},
+					jsx: true
+				}
+			}
 		},
 		rules: {
 			semi: 1,
-			indent: [1, "tab"],
-			"no-multiple-empty-lines": [
+			indent: [1, 'tab'],
+			'no-multiple-empty-lines': [
 				1,
 				{
-					max: 1,
-				},
-			],
-		},
+					max: 1
+				}
+			]
+		}
 	}
-];
+]);
