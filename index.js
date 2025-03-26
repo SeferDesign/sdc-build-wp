@@ -45,9 +45,11 @@ project.builds = argv.builds ? (Array.isArray(argv.builds) ? argv.builds : argv.
 
 	let initialBuildTimerStart = Date.now();
 	log('info', `Started initial build [${project.builds.join(', ')}]`);
+	let promisesBuilds = [];
 	for (let build of project.builds) {
-		await project.components[build].init();
+		promisesBuilds.push(project.components[build].init());
 	}
+	await Promise.all(promisesBuilds);
 	log('info', `Finished initial build in ${Math.round((Date.now() - initialBuildTimerStart) / 1000)} seconds`);
 
 	if (argv.watch) {
