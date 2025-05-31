@@ -43,6 +43,10 @@ project.builds = argv.builds ? (Array.isArray(argv.builds) ? argv.builds : argv.
 
 (async() => {
 
+	if (argv.watch) {
+		project.components.server.serve(false);
+	}
+
 	let initialBuildTimerStart = performance.now();
 	log('info', `Started initial build [${project.builds.join(', ')}]`);
 	let promisesBuilds = [];
