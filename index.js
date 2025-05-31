@@ -4,7 +4,6 @@ const argv = parseArgs(process.argv.slice(2));
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { promises as fs } from 'fs';
-import { Tail } from 'tail';
 import project from './lib/project.js';
 import log from './lib/logging.js';
 import * as LibComponents from './lib/components/index.js';
@@ -56,14 +55,6 @@ project.builds = argv.builds ? (Array.isArray(argv.builds) ? argv.builds : argv.
 		log('info', `Started watching [${project.builds.join(', ')}]`);
 		for (let build of project.builds) {
 			await project.components[build].watch();
-		}
-		try {
-			await fs.access(project.paths.errorLog);
-			new Tail(project.paths.errorLog).on('line', function(data) {
-				log('php', data);
-			});
-		} catch (error) {
-			log('info', `Cannot find error log @ ${project.paths.errorLog}. Skipping watching php error logs`);
 		}
 	}
 
