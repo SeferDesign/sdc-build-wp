@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import parseArgs from 'minimist';
-const argv = parseArgs(process.argv.slice(2));
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { promises as fs } from 'fs';
@@ -9,6 +8,8 @@ import log from './lib/logging.js';
 import * as LibComponents from './lib/components/index.js';
 
 project.components = Object.fromEntries(Object.entries(LibComponents).map(([name, Class]) => [name, new Class()]));
+
+const argv = parseArgs(process.argv.slice(2));
 
 if (argv.help || argv.h) {
 console.log(`
