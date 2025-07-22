@@ -43,7 +43,9 @@ project.builds = argv.builds ? (Array.isArray(argv.builds) ? argv.builds : argv.
 
 (async() => {
 
-	if (argv.watch) {
+	if (argv.watch && project.builds.includes('server')) {
+		project.builds.splice(project.builds.indexOf('server'), 1);
+		project.builds.unshift('server');
 		project.components.server.serve(false);
 	}
 
@@ -56,7 +58,9 @@ project.builds = argv.builds ? (Array.isArray(argv.builds) ? argv.builds : argv.
 	await Promise.all(promisesBuilds);
 	log('info', `Finished initial build in ${Math.round((performance.now() - initialBuildTimerStart) / 1000)} seconds`);
 
-	if (argv.watch) {
+	if (argv.watch && project.builds.includes('server')) {
+		project.builds.splice(project.builds.indexOf('server'), 1);
+		project.builds.push('server');
 		log('info', `Started watching [${project.builds.join(', ')}]`);
 		for (let build of project.builds) {
 			await project.components[build].watch();
