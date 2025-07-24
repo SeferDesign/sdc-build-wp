@@ -12,7 +12,7 @@ project.components = Object.fromEntries(Object.entries(LibComponents).map(([name
 const argv = parseArgs(process.argv.slice(2));
 
 if (argv.help || argv.h) {
-console.log(`
+	console.log(`
 Usage: sdc-build-wp [options] [arguments]
 
 Options:
@@ -33,16 +33,56 @@ sdc-build-wp --watch
 sdc-build-wp --watch --builds=style,scripts
 `);
 
-process.exit(0);
+	process.exit(0);
 } else if (argv.version || argv.v) {
-console.log(JSON.parse(await fs.readFile(path.join(path.dirname(fileURLToPath(import.meta.url)), 'package.json'))).version);
-process.exit(0);
+	console.log(JSON.parse(await fs.readFile(path.join(path.dirname(fileURLToPath(import.meta.url)), 'package.json'))).version);
+	process.exit(0);
 }
 
 project.builds = argv.builds ? (Array.isArray(argv.builds) ? argv.builds : argv.builds.split(',')) : Object.keys(project.components);
 
-(async() => {
+(async () => {
+	keypressListen();
+	await runBuild();
+})();
 
+process.on('SIGINT', function () {
+	console.log(`\r`);
+	if (process.stdin.isTTY) {
+		process.stdin.setRawMode(false);
+		process.stdin.pause();
+	}
+	stopActiveComponents()
+	log('info', `Exiting sdc-build-wp`);
+	process.exit(0);
+});
+
+function keypressListen() {
+	if (!process.stdin.isTTY) { return; }
+
+	process.stdin.setRawMode(true);
+	process.stdin.resume();
+	process.stdin.setEncoding('utf8');
+
+	process.stdin.on('data', (key) => {
+		switch (key) {
+			case '\u0003': // Ctrl+C
+			case 'q':
+				process.emit('SIGINT');
+				return;
+			case 'r':
+				log('info', 'Restart requested...');
+				stopActiveComponents()
+				setTimeout(() => {
+					process.stdout.write('\x1B[2J\x1B[0f'); // Clear screen
+					runBuild();
+				}, 100);
+				break;
+		}
+	});
+}
+
+async function runBuild() {
 	if (argv.watch && project.builds.includes('server')) {
 		project.builds.splice(project.builds.indexOf('server'), 1);
 		project.builds.unshift('server');
@@ -62,18 +102,15 @@ project.builds = argv.builds ? (Array.isArray(argv.builds) ? argv.builds : argv.
 		project.builds.splice(project.builds.indexOf('server'), 1);
 		project.builds.push('server');
 		log('info', `Started watching [${project.builds.join(', ')}]`);
+		log('info', `[r] to restart, [q] to quit`);
 		for (let build of project.builds) {
 			await project.components[build].watch();
 		}
 	}
+}
 
-})();
-
-process.on('SIGINT', function() {
-	console.log(`\r`);
+function stopActiveComponents() {
 	if (project.components.server?.server) {
 		project.components.server.server.exit();
 	}
-	log('info', `Exiting sdc-build-wp`);
-	process.exit(0);
-});
+}

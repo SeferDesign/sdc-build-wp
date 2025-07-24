@@ -15,3 +15,5 @@ Develop locally with the following command from within the test project director
 ```
 node ~/sites/sdc/sdc-build-wp/index.js --watch
 ```
+
+While watch is running, pressing `r` restarts the process. Pressing `q` quits the process.
