@@ -1,7 +1,11 @@
 import { defineConfig } from 'eslint/config';
+import stylistic from '@stylistic/eslint-plugin';
 
 export default defineConfig([
 	{
+		plugins: {
+			'@stylistic': stylistic
+		},
 		languageOptions: {
 			parserOptions: {
 				ecmaVersion: 'latest',
@@ -19,7 +23,8 @@ export default defineConfig([
 				{
 					max: 1
 				}
-			]
+			],
+			'@stylistic/quotes': [1, 'single']
 		}
 	}
 ]);
