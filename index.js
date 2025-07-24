@@ -6,6 +6,7 @@ import { promises as fs } from 'fs';
 import project from './lib/project.js';
 import log from './lib/logging.js';
 import * as LibComponents from './lib/components/index.js';
+import { watch } from 'browser-sync';
 
 project.components = Object.fromEntries(Object.entries(LibComponents).map(([name, Class]) => [name, new Class()]));
 
@@ -31,6 +32,11 @@ Examples:
 sdc-build-wp
 sdc-build-wp --watch
 sdc-build-wp --watch --builds=style,scripts
+
+While watch is enabled, use the following keyboard commands to control the build process:
+
+  [r]     Restart
+  [q]     Quit
 `);
 
 	process.exit(0);
