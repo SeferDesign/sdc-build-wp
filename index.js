@@ -5,8 +5,8 @@ import { fileURLToPath } from 'url';
 import { promises as fs } from 'fs';
 import project from './lib/project.js';
 import log from './lib/logging.js';
+import * as utils from './lib/utils.js';
 import * as LibComponents from './lib/components/index.js';
-import { watch } from 'browser-sync';
 
 project.components = Object.fromEntries(Object.entries(LibComponents).map(([name, Class]) => [name, new Class()]));
 
@@ -58,8 +58,9 @@ process.on('SIGINT', function () {
 		process.stdin.setRawMode(false);
 		process.stdin.pause();
 	}
-	stopActiveComponents()
-	log('info', `Exiting sdc-build-wp`);
+	utils.stopActiveComponents();
+	utils.clearScreen();
+	log('info', `Exited sdc-build-wp`);
 	process.exit(0);
 });
 
@@ -77,10 +78,10 @@ function keypressListen() {
 				process.emit('SIGINT');
 				return;
 			case 'r':
-				log('info', 'Restart requested...');
-				stopActiveComponents()
+				log('info', 'Restarted build process');
+				utils.stopActiveComponents();
 				setTimeout(() => {
-					process.stdout.write('\x1B[2J\x1B[0f'); // Clear screen
+					utils.clearScreen();
 					runBuild();
 				}, 100);
 				break;
@@ -102,6 +103,7 @@ async function runBuild() {
 		promisesBuilds.push(project.components[build].init());
 	}
 	await Promise.all(promisesBuilds);
+	utils.clearScreen();
 	log('info', `Finished initial build in ${Math.round((performance.now() - initialBuildTimerStart) / 1000)} seconds`);
 
 	if (argv.watch && project.builds.includes('server')) {
@@ -112,11 +114,5 @@ async function runBuild() {
 		for (let build of project.builds) {
 			await project.components[build].watch();
 		}
-	}
-}
-
-function stopActiveComponents() {
-	if (project.components.server?.server) {
-		project.components.server.server.exit();
 	}
 }
