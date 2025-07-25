@@ -36,6 +36,7 @@ sdc-build-wp --watch --builds=style,scripts
 While watch is enabled, use the following keyboard commands to control the build process:
 
   [r]     Restart
+  [p]     Pause/Resume
   [q]     Quit
 `);
 
@@ -54,13 +55,14 @@ project.builds = argv.builds ? (Array.isArray(argv.builds) ? argv.builds : argv.
 
 process.on('SIGINT', function () {
 	console.log(`\r`);
+	utils.stopActiveComponents();
+	project.isRunning = false;
+	utils.clearScreen();
+	log('info', `Exited sdc-build-wp`);
 	if (process.stdin.isTTY) {
 		process.stdin.setRawMode(false);
 		process.stdin.pause();
 	}
-	utils.stopActiveComponents();
-	utils.clearScreen();
-	log('info', `Exited sdc-build-wp`);
 	process.exit(0);
 });
 
@@ -77,6 +79,15 @@ function keypressListen() {
 			case 'q':
 				process.emit('SIGINT');
 				return;
+			case 'p':
+				project.isRunning = !project.isRunning;
+				utils.clearScreen();
+				if (project.isRunning) {
+					log('success', 'Resumed build process');
+				} else {
+					log('warn', 'Paused build process');
+				}
+				break;
 			case 'r':
 				log('info', 'Restarted build process');
 				utils.stopActiveComponents();
@@ -90,6 +101,7 @@ function keypressListen() {
 }
 
 async function runBuild() {
+	project.isRunning = true;
 	if (argv.watch && project.builds.includes('server')) {
 		project.builds.splice(project.builds.indexOf('server'), 1);
 		project.builds.unshift('server');
@@ -110,7 +122,7 @@ async function runBuild() {
 		project.builds.splice(project.builds.indexOf('server'), 1);
 		project.builds.push('server');
 		log('info', `Started watching [${project.builds.join(', ')}]`);
-		log('info', `[r] to restart, [q] to quit`);
+		log('info', `[r] to restart, [p] to pause/resume, [q] to quit`);
 		for (let build of project.builds) {
 			await project.components[build].watch();
 		}
