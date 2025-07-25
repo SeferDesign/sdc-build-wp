@@ -3,43 +3,17 @@ import parseArgs from 'minimist';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { promises as fs } from 'fs';
-import project from './lib/project.js';
+import { default as project, init } from './lib/project.js';
 import log from './lib/logging.js';
+import { display as displayHelp } from './lib/help.js';
 import * as utils from './lib/utils.js';
-import * as LibComponents from './lib/components/index.js';
 
-project.components = Object.fromEntries(Object.entries(LibComponents).map(([name, Class]) => [name, new Class()]));
+init();
 
 const argv = parseArgs(process.argv.slice(2));
 
 if (argv.help || argv.h) {
-	console.log(`
-Usage: sdc-build-wp [options] [arguments]
-
-Options:
-  -h, --help           Show help message and exit
-  -v, --version        Version
-  -w, --watch          Build and watch
-  -b, --builds BUILDS  Build with specific components
-
-Components:
-
-${Object.entries(project.components).map(([key, component]) => {
-	return `${key}\t\t${component.description}\r\n`;
-}).join('')}
-Examples:
-
-sdc-build-wp
-sdc-build-wp --watch
-sdc-build-wp --watch --builds=style,scripts
-
-While watch is enabled, use the following keyboard commands to control the build process:
-
-  [r]     Restart
-  [p]     Pause/Resume
-  [q]     Quit
-`);
-
+	displayHelp();
 	process.exit(0);
 } else if (argv.version || argv.v) {
 	console.log(JSON.parse(await fs.readFile(path.join(path.dirname(fileURLToPath(import.meta.url)), 'package.json'))).version);
