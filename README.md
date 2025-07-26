@@ -8,13 +8,7 @@ sdc-build-wp --watch --builds=style,scripts # comma-seperated list of components
 sdc-build-wp --help
 ```
 
-## Develop
-
-Develop locally with the following command from within the test project directory:
-
-```
-node ~/sites/sdc/sdc-build-wp/index.js --watch
-```
+## Watch
 
 While watch is enabled, use the following keyboard commands to control the build process:
 
@@ -23,3 +17,11 @@ While watch is enabled, use the following keyboard commands to control the build
 [p]     Pause/Resume
 [q]     Quit
 ````
+
+## Develop
+
+Develop locally with the following command from within the test project directory:
+
+```
+node ~/sites/sdc/sdc-build-wp/index.js --watch
+```
