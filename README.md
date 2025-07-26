@@ -10,7 +10,7 @@ sdc-build-wp --help
 
 ## Caching
 
-sdc-build-wp includes intelligent build caching to speed up subsequent builds by only rebuilding files that have changed or whose dependencies have changed.
+Caching speeds up subsequent builds by only rebuilding files that have changed or whose dependencies have changed.
 
 ```sh
 sdc-build-wp --no-cache        # Disable caching for this build
