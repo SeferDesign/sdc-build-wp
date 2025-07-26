@@ -1,35 +1,59 @@
 <?xml version="1.0"?>
 <ruleset name="SDCBuildWPStandard">
 	<description>sdc-build-wp coding standard</description>
-
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg name="parallel" value="8"/>
+	<arg value="ps"/>
 	<rule ref="Generic.Arrays.ArrayIndent">
 		<properties>
 			<property name="indent" value="2" />
 		</properties>
 	</rule>
-	<rule ref="Generic.CodeAnalysis.EmptyPHPStatement"/>
-	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter"/>
-	<rule ref="Generic.Formatting.SpaceAfterCast"/>
-	<rule ref="Generic.Formatting.SpaceAfterNot">
-    <properties>
-      <property name="spacing" value="0" />
-    </properties>
-	</rule>
-	<rule ref="Generic.Functions.OpeningFunctionBraceKernighanRitchie">
-    <properties>
-			<property name="checkFunctions" value="false" />
-			<property name="checkClosures" value="true" />
-    </properties>
-	</rule>
-	<rule ref="Generic.NamingConventions.UpperCaseConstantName"/>
-	<rule ref="Generic.WhiteSpace.ArbitraryParenthesesSpacing"/>
-	<rule ref="Generic.PHP.DisallowAlternativePHPTags"/>
-	<rule ref="Generic.PHP.DisallowShortOpenTag"/>
+	<rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
 	<rule ref="Generic.WhiteSpace.LanguageConstructSpacing"/>
 	<rule ref="Generic.WhiteSpace.ScopeIndent">
 		<properties>
 			<property name="exact" value="true" />
 			<property name="indent" value="2"/>
+		</properties>
+	</rule>
+	<rule ref="Generic.WhiteSpace.ArbitraryParenthesesSpacing"/>
+	<rule ref="Generic.WhiteSpace.DisallowTabIndent"/>
+	<rule ref="Generic.CodeAnalysis.EmptyPHPStatement"/>
+	<rule ref="Generic.CodeAnalysis.EmptyStatement"/>
+	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter"/>
+	<rule ref="Generic.CodeAnalysis.UselessOverridingMethod"/>
+	<rule ref="Generic.Formatting.SpaceAfterCast"/>
+	<rule ref="Generic.Formatting.SpaceAfterNot">
+		<properties>
+			<property name="spacing" value="0" />
+		</properties>
+	</rule>
+	<rule ref="Generic.Formatting.DisallowMultipleStatements"/>
+	<rule ref="Generic.Functions.OpeningFunctionBraceKernighanRitchie">
+		<properties>
+			<property name="checkFunctions" value="false" />
+			<property name="checkClosures" value="true" />
+		</properties>
+	</rule>
+	<rule ref="Generic.Functions.FunctionCallArgumentSpacing"/>
+	<rule ref="Generic.NamingConventions.UpperCaseConstantName"/>
+	<rule ref="Generic.NamingConventions.CamelCapsFunctionName"/>
+	<rule ref="Generic.PHP.DisallowAlternativePHPTags"/>
+	<rule ref="Generic.PHP.DisallowShortOpenTag"/>
+	<rule ref="Generic.PHP.LowerCaseConstant"/>
+	<rule ref="Generic.PHP.LowerCaseKeyword"/>
+	<rule ref="Generic.PHP.LowerCaseType"/>
+	<rule ref="Generic.PHP.DeprecatedFunctions"/>
+	<rule ref="Generic.PHP.ForbiddenFunctions">
+		<properties>
+			<property name="forbiddenFunctions" type="array">
+				<element key="eval" value="null"/>
+				<element key="create_function" value="null"/>
+				<element key="var_dump" value="null"/>
+				<element key="print_r" value="null"/>
+			</property>
 		</properties>
 	</rule>
 	<rule ref="PEAR.Files.IncludingFile.BracketsNotRequired"/>
@@ -38,18 +62,20 @@
 	<rule ref="PEAR.NamingConventions.ValidClassName"/>
 	<rule ref="Squiz.ControlStructures.ForEachLoopDeclaration"/>
 	<rule ref="Squiz.ControlStructures.ForLoopDeclaration"/>
+	<rule ref="Squiz.ControlStructures.ControlSignature"/>
 	<rule ref="Squiz.Strings.ConcatenationSpacing">
-    <properties>
-      <property name="spacing" value="1" />
-    </properties>
+		<properties>
+			<property name="spacing" value="1" />
+		</properties>
 	</rule>
 	<rule ref="Squiz.Strings.DoubleQuoteUsage.NotRequired"/>
 	<rule ref="Squiz.WhiteSpace.FunctionSpacing">
-    <properties>
-      <property name="spacing" value="1" />
-    </properties>
+		<properties>
+			<property name="spacing" value="1" />
+		</properties>
 	</rule>
 	<rule ref="Squiz.WhiteSpace.SemicolonSpacing"/>
 	<rule ref="Squiz.WhiteSpace.SuperfluousWhitespace"/>
-
+	<rule ref="Squiz.WhiteSpace.LogicalOperatorSpacing"/>
+	<rule ref="Squiz.WhiteSpace.LanguageConstructSpacing"/>
 </ruleset>
