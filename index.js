@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { default as project, init, keypressListen } from './lib/project.js';
-import build from './lib/build.js';
+import { build } from './lib/build.js';
 
 (async () => {
 	await init();
