@@ -1,6 +1,6 @@
 {
 	"name": "sdc-build-wp",
-	"version": "4.9.2",
+	"version": "5.0.0",
 	"description": "Custom WordPress build process.",
 	"engines": {
 		"node": ">=22"
