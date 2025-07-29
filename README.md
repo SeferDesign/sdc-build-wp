@@ -23,6 +23,7 @@ While watch is enabled, use the following keyboard commands to control the build
 
 ```sh
 [r]     Restart
+[c]     Clear cache
 [p]     Pause/Resume
 [q]     Quit
 ````
