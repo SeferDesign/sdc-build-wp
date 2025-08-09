@@ -1,0 +1,10 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"version": "1.0.0",
+	"name": "custom/name-of-block",
+	"title": "Name of Block",
+	"category": "custom",
+	"icon": "admin-page",
+	"editorScript": "file:./index.js"
+}

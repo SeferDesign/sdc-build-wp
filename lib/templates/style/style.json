@@ -1,0 +1,10 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"version": 3,
+	"title": "New Style",
+	"slug": "new-style",
+	"blockTypes": [ "core/group" ],
+	"styles": {
+		"css": "& {}"
+	}
+}
