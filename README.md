@@ -22,9 +22,10 @@ sdc-build-wp --clear-cache     # Clear all cached data
 While watch is enabled, use the following keyboard commands to control the build process:
 
 ```sh
-[r]     Restart
+[r]     Restart build process
 [c]     Clear cache
-[p]     Pause/Resume
+[p]     Pause/Resume watching
+[n]     New component
 [q]     Quit
 ````
 
