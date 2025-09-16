@@ -195,3 +195,33 @@ function newlineBeforeCommaFixerRespectsComments(
     , $paramC=30
     , string $paramC='foo'
 ) {}
+
+class PropertyPromotionSpacingAfterComma {
+    public function __construct(private string|int $propA, protected bool $correctSpace,  public MyClass $tooMuchSpace,readonly string $noSpace) {}
+}
+
+class PropertyPromotionSpacingAfterModifier {
+    public function __construct(
+        private$noSpace,
+        public    MyClass $tooMuchSpace,
+        protected   readonly   string $tooMuchSpaceX2,
+        readonly
+        public
+        string $tooMuchSpaceNewLines,
+    ) {}
+}
+
+class AsymVisibilityPropertyPromotionSpacingAfterComma {
+    public function __construct(private(set) string|int $propA, protected(set) bool $correctSpace,  public(set) MyClass $tooMuchSpace,public(set) string $noSpace) {}
+}
+
+class AsymVisibilityPropertyPromotionSpacingAfterModifier {
+    public function __construct(
+        private(set)$noSpace,
+        public(set)    MyClass $tooMuchSpace,
+        protected(set)   public   string $tooMuchSpaceX2,
+        private
+        public(set)
+        string $tooMuchSpaceNewLines,
+    ) {}
+}

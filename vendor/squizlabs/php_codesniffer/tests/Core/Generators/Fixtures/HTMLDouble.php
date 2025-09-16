@@ -14,26 +14,56 @@ class HTMLDouble extends HTML
 {
 
     /**
-     * Print the footer of the HTML page without the date or version nr to make the expectation fixtures stable.
+     * Format the footer of the HTML page without the date or version nr to make the expectation fixtures stable.
      *
-     * @return void
+     * @return string
      */
-    protected function printFooter()
+    protected function getFormattedFooter()
     {
-        echo '  <div class="tag-line">';
-        echo 'Documentation generated on #REDACTED#';
-        echo ' by <a href="https://github.com/PHPCSStandards/PHP_CodeSniffer">PHP_CodeSniffer #VERSION#</a>';
-        echo '</div>'.PHP_EOL;
-        echo ' </body>'.PHP_EOL;
-        echo '</html>'.PHP_EOL;
+        $output ='  <div class="tag-line">Documentation generated on #REDACTED# by <a href="https://github.com/PHPCSStandards/PHP_CodeSniffer">PHP_CodeSniffer #VERSION#</a></div>
+ </body>
+</html>';
+
+        // Use the correct line endings based on the OS.
+        return str_replace("\n", PHP_EOL, $output).PHP_EOL;
     }
 
     /**
-     * Print the _real_ footer of the HTML page.
+     * Retrieve the _real_ footer of the HTML page.
+     *
+     * @return string
+     */
+    public function getRealFooter()
+    {
+        return parent::getFormattedFooter();
+    }
+
+    /**
+     * [VISIBILITY WIDENING ONLY] Print the header of the HTML page.
      *
      * @return void
      */
-    public function printRealFooter()
+    public function printHeader()
+    {
+        parent::printHeader();
+    }
+
+    /**
+     * [VISIBILITY WIDENING ONLY] Print the table of contents for the standard.
+     *
+     * @return void
+     */
+    public function printToc()
+    {
+        parent::printToc();
+    }
+
+    /**
+     * [VISIBILITY WIDENING ONLY] Print the footer of the HTML page.
+     *
+     * @return void
+     */
+    public function printFooter()
     {
         parent::printFooter();
     }

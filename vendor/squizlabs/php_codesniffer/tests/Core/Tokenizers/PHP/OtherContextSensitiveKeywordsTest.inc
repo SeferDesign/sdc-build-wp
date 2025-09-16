@@ -2,12 +2,12 @@
 
 class OtherContextSensitiveKeywords
 {
-    const /* testParent */ PARENT = 'PARENT';
-    const /* testSelf */ SELF = 'SELF';
+    const /* testKeywordParentAsConstantNameShouldBeString */ PARENT = 'PARENT';
+    const /* testKeywordSelfAsConstantNameShouldBeString */ SELF = 'SELF';
 
-    const /* testFalse */ FALSE = 'FALSE',
-    const /* testTrue */ TRUE = 'TRUE',
-    const /* testNull */ NULL = 'NULL',
+    const /* testKeywordFalseAsConstantNameShouldBeString */ FALSE = 'FALSE',
+    const /* testKeywordTrueAsConstantNameShouldBeString */ TRUE = 'TRUE',
+    const /* testKeywordNullAsConstantNameShouldBeString */ NULL = 'NULL',
 }
 
 abstract class SomeClass
@@ -212,11 +212,11 @@ class DNFTypes extends Something {
     const /* testSelfIsKeywordAsConstDNFType */ (self&B)|int NAME_SELF = SOME_CONST;
     const bool|(A&/* testParentIsKeywordAsConstDNFType */ parent) NAME_PARENT = SOME_CONST;
 
-    readonly public (A&B)/* testFalseIsKeywordAsConstDNFType */ |false $false;
-    protected /* testTrueIsKeywordAsConstDNFType */ true|(A&B) $true = SOME_CONST;
-    static private (A&B)|/* testNullIsKeywordAsConstDNFType */ null|(C&D) $null = SOME_CONST;
-    var string|/* testSelfIsKeywordAsConstDNFType */ (self&Stringable) $self = SOME_CONST;
-    protected (A/* testParentIsKeywordAsConstDNFType */ &parent)|float $parent = SOME_CONST;
+    readonly public (A&B)/* testFalseIsKeywordAsPropertyDNFType */ |false $false;
+    protected /* testTrueIsKeywordAsPropertyDNFType */ true|(A&B) $true = SOME_CONST;
+    static private (A&B)|/* testNullIsKeywordAsPropertyDNFType */ null|(C&D) $null = SOME_CONST;
+    var string|/* testSelfIsKeywordAsPropertyDNFType */ (self&Stringable) $self = SOME_CONST;
+    protected (A/* testParentIsKeywordAsPropertyDNFType */ &parent)|float $parent = SOME_CONST;
 
     public function DNFWithFalse(
         /* testFalseIsKeywordAsParamDNFType */
@@ -245,3 +245,17 @@ class DNFTypes extends Something {
         ) : parent|(A&B) => $param->get();
     }
 }
+
+/* testFalseIsKeywordUppercase */
+if ($a === FALSE) {
+/* testTrueIsKeywordMixedCase */
+} elseif ( $b === True) {
+/* testNullIsKeywordUppercase */
+} elseif ($c === NULL) {}
+
+/* testFullyQualifiedFalseIsKeyword */
+$a = \false;
+/* testFullyQualifiedTrueIsKeyword */
+$b = \true;
+/* testFullyQualifiedNullIsKeyword */
+$c = \null;

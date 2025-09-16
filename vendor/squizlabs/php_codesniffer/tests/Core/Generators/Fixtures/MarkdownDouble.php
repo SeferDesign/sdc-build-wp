@@ -14,22 +14,54 @@ class MarkdownDouble extends Markdown
 {
 
     /**
-     * Print the markdown footer without the date or version nr to make the expectation fixtures stable.
+     * Format the markdown footer without the date or version nr to make the expectation fixtures stable.
      *
-     * @return void
+     * @return string
      */
-    protected function printFooter()
+    protected function getFormattedFooter()
     {
-        echo PHP_EOL.'Documentation generated on *REDACTED*';
-        echo ' by [PHP_CodeSniffer *VERSION*](https://github.com/PHPCSStandards/PHP_CodeSniffer)'.PHP_EOL;
+        $output     = PHP_EOL.'Documentation generated on *REDACTED*';
+        $output    .= ' by [PHP_CodeSniffer *VERSION*](https://github.com/PHPCSStandards/PHP_CodeSniffer)'.PHP_EOL;
+
+        return $output;
     }
 
     /**
-     * Print the _real_ footer of the markdown page.
+     * Retrieve the _real_ footer of the markdown page.
+     *
+     * @return string
+     */
+    public function getRealFooter()
+    {
+        return parent::getFormattedFooter();
+    }
+
+    /**
+     * [VISIBILITY WIDENING ONLY] Print the header of the HTML page.
      *
      * @return void
      */
-    public function printRealFooter()
+    public function printHeader()
+    {
+        parent::printHeader();
+    }
+
+    /**
+     * [VISIBILITY WIDENING ONLY] Print the table of contents for the standard.
+     *
+     * @return void
+     */
+    public function printToc()
+    {
+        parent::printToc();
+    }
+
+    /**
+     * [VISIBILITY WIDENING ONLY] Print the footer of the HTML page.
+     *
+     * @return void
+     */
+    public function printFooter()
     {
         parent::printFooter();
     }
