@@ -1,0 +1,18 @@
+[package]
+name = "mago-composer"
+description = "Parses and models composer.json files"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+ahash = { workspace = true }
+
+[lints]
+workspace = true

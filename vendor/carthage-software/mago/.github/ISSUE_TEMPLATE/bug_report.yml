@@ -1,0 +1,116 @@
+name: "🐛 Bug Report"
+description: "Report a bug or unexpected behavior in Mago."
+labels: ["Type: Bug"]
+assignees: ["azjezz"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Thank you for reporting a bug!**
+        Please fill out this form **as accurately as possible** so we can reproduce and fix the issue.
+
+        If your issue is related to **installation problems**, make sure you check the [installation guide](https://mago.carthage.software/#/getting-started/installation).
+
+        ⚠️ **Issues missing key details may be closed without investigation.**
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "🐞 Describe the Bug"
+      description: "Provide a **clear and concise** description of the issue."
+      placeholder: "Mago produces an unexpected error when running `mago lint` on my project..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: "🔄 Steps to Reproduce"
+      description: "List the steps to trigger the issue."
+      placeholder: |
+        1. Run `mago lint` on my PHP project.
+        2. The following error appears: `error: unexpected token`
+        3. Expected no error since the syntax is correct.
+    validations:
+      required: true
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: "⚙️ Configuration (mago.toml)"
+      description: "Provide your **full Mago configuration file** (`mago.toml`)."
+      render: toml
+      placeholder: |
+        [linter]
+        plugins = ["php-unit"]
+
+        [[linter.rules]]
+        name = "php-unit/redundant-instanceof"
+        level = "error"
+    validations:
+      required: true
+
+  - type: textarea
+    id: command-output
+    attributes:
+      label: "📜 Command Output"
+      description: "Paste the **exact** output of the command you ran, preferably with the `MAGO_LOG=trace` environment variable."
+      render: shell
+      placeholder: |
+        $ MAGO_LOG=trace mago lint
+        ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: php-sample
+    attributes:
+      label: "📂 PHP Code Sample (If Applicable)"
+      description: |
+        If the issue is related to PHP code analysis, provide a **minimal PHP script** that reproduces the issue.
+      render: php
+      placeholder: |
+        <?php
+
+        function example() {
+            return new class() {};
+        }
+    validations:
+      required: false
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: "🖥️ Operating System"
+      description: "What OS are you using?"
+      options:
+        - "Linux"
+        - "macOS"
+        - "Windows"
+        - "Other (specify in additional context)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation-method
+    attributes:
+      label: "📦 How did you install Mago?"
+      description: "Select the installation method you used."
+      options:
+        - "Homebrew (brew install mago)"
+        - "Cargo (`cargo install mago`)"
+        - "Composer (`composer require carthage-software/mago`)"
+        - "Installation Script (`curl | bash`)"
+        - "Prebuilt Binary (download from GitHub)"
+        - "Built from Source"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: "📝 Additional Context"
+      description: "Is there anything else we should know?"
+      placeholder: "This happens only when running Mago on large projects..."
+    validations:
+      required: false

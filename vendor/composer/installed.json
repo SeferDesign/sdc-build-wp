@@ -1,6 +1,68 @@
 {
     "packages": [
         {
+            "name": "carthage-software/mago",
+            "version": "1.0.0-beta.14",
+            "version_normalized": "1.0.0.0-beta14",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/carthage-software/mago.git",
+                "reference": "28df10deb41891818aab27392e07383f3eec7b16"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/carthage-software/mago/zipball/28df10deb41891818aab27392e07383f3eec7b16",
+                "reference": "28df10deb41891818aab27392e07383f3eec7b16",
+                "shasum": ""
+            },
+            "require": {
+                "composer-plugin-api": "^2.6",
+                "php": "~8.1 || ~8.2 || ~8.3 || ~8.4"
+            },
+            "require-dev": {
+                "composer/composer": "^2.8"
+            },
+            "time": "2025-09-12T23:21:44+00:00",
+            "bin": [
+                "composer/bin/mago"
+            ],
+            "type": "composer-plugin",
+            "extra": {
+                "class": "Mago\\MagoPlugin"
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Mago\\": "composer/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT OR Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Saif Eddin Gmati",
+                    "email": "azjezz@carthage.software"
+                }
+            ],
+            "description": "Mago is a toolchain for PHP that aims to provide a set of tools to help developers write better code.",
+            "keywords": [
+                "dev"
+            ],
+            "support": {
+                "issues": "https://github.com/carthage-software/mago/issues",
+                "source": "https://github.com/carthage-software/mago/tree/1.0.0-beta.14"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/azjezz",
+                    "type": "github"
+                }
+            ],
+            "install-path": "../carthage-software/mago"
+        },
+        {
             "name": "squizlabs/php_codesniffer",
             "version": "3.11.3",
             "version_normalized": "3.11.3.0",

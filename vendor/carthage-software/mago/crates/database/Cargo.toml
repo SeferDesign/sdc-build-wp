@@ -1,0 +1,22 @@
+[package]
+name = "mago-database"
+description = "Provides a high-performance, in-memory database for source code analysis, featuring distinct mutable and immutable states and transactional updates."
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+memchr = { workspace = true }
+glob = { workspace = true }
+tracing = { workspace = true }
+walkdir = { workspace = true }
+globset = { workspace = true }
+serde = { workspace = true, features = ["rc"] }
+rayon = { workspace = true }

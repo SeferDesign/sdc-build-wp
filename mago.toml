@@ -1,0 +1,29 @@
+# Welcome to Mago!
+# For full documentation, see https://mago.carthage.software/tools/overview
+
+[source]
+excludes = ["./node_modules", "./vendor", "./build", "./dist", "./.git", "./.github", "./.vscode"]
+
+# https://mago.carthage.software/tools/formatter/configuration-reference
+[formatter]
+print-width = 9999
+tab-width = 2
+use-tabs = true
+trailing-comma = false
+remove-trailing-close-tag = false
+function-brace-style = "same_line"
+method-brace-style = "same_line"
+# classlike-brace-style = "same_line"
+# method-chain-breaking-style = "same_line"
+# inline-empty-function-braces = true
+# inline-empty-method-braces = true
+# inline-empty-classlike-braces = true
+# always-break-named-arguments-list = false
+# preserve-breaking-member-access-chain = true
+# preserve-breaking-argument-list = true
+# preserve-breaking-parameter-list = true
+# preserve-breaking-attribute-list = true
+# preserve-breaking-conditional-expression = true
+
+[linter]
+integrations = ["wordpress"]

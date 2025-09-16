@@ -1,0 +1,21 @@
+[package]
+name = "mago-algebra"
+description = "The logical reasoning engine for Mago's static analyzer, responsible for manipulating sets of logical clauses."
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+mago-codex = { workspace = true }
+mago-span = { workspace = true }
+mago-atom = { workspace = true }
+ahash = { workspace = true }
+itertools = { workspace = true }
+indexmap = { workspace = true }
