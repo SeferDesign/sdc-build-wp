@@ -41,7 +41,7 @@ final class ConfigDouble extends Config
      *                                              the ruleset auto-discovery.
      *                                              Note: there is no need to set this to `true` when a standard
      *                                              is being passed via the `$cliArgs`. Those settings will always
-     *                                              respected.
+     *                                              be respected.
      *                                              Defaults to `false`. Will result in the standard being set
      *                                              to "PSR1" if not provided via `$cliArgs`.
      * @param bool          $skipSettingReportWidth Whether to skip setting a report-width to prevent
@@ -185,7 +185,8 @@ final class ConfigDouble extends Config
     private function getStaticConfigProperty($name)
     {
         $property = new ReflectionProperty('PHP_CodeSniffer\Config', $name);
-        $property->setAccessible(true);
+        (PHP_VERSION_ID < 80100) && $property->setAccessible(true);
+
         return $property->getValue();
 
     }//end getStaticConfigProperty()
@@ -202,9 +203,9 @@ final class ConfigDouble extends Config
     private function setStaticConfigProperty($name, $value)
     {
         $property = new ReflectionProperty('PHP_CodeSniffer\Config', $name);
-        $property->setAccessible(true);
+        (PHP_VERSION_ID < 80100) && $property->setAccessible(true);
         $property->setValue(null, $value);
-        $property->setAccessible(false);
+        (PHP_VERSION_ID < 80100) && $property->setAccessible(false);
 
     }//end setStaticConfigProperty()
 

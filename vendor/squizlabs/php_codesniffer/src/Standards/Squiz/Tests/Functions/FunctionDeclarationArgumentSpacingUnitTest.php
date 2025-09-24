@@ -89,6 +89,18 @@ final class FunctionDeclarationArgumentSpacingUnitTest extends AbstractSniffUnit
                 193 => 1,
                 195 => 1,
                 196 => 1,
+                200 => 2,
+                205 => 1,
+                206 => 1,
+                207 => 2,
+                208 => 1,
+                209 => 1,
+                215 => 2,
+                220 => 1,
+                221 => 1,
+                222 => 2,
+                223 => 1,
+                224 => 1,
             ];
 
         default:

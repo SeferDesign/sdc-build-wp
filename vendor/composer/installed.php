@@ -29,9 +29,9 @@
             'dev_requirement' => false,
         ),
         'squizlabs/php_codesniffer' => array(
-            'pretty_version' => '3.11.3',
-            'version' => '3.11.3.0',
-            'reference' => 'ba05f990e79cbe69b9f35c8c1ac8dca7eecc3a10',
+            'pretty_version' => '3.13.4',
+            'version' => '3.13.4.0',
+            'reference' => 'ad545ea9c1b7d270ce0fc9cbfb884161cd706119',
             'type' => 'library',
             'install_path' => __DIR__ . '/../squizlabs/php_codesniffer',
             'aliases' => array(),
