@@ -33,7 +33,6 @@ Here is a small checklist to get you going:
    ```
 
 4. **Set up your environment**:
-
    - Install [Rust](https://www.rust-lang.org/tools/install)
    - Install [Just](https://github.com/casey/just)
    - Run `just build` to set up the project.
@@ -56,10 +55,10 @@ Here is a small checklist to get you going:
    just test
    ```
 
-   Lint your code to ensure it follows the coding standards:
+   Check your code to ensure it follows the coding standards:
 
    ```bash
-   just lint
+   just check
    ```
 
 8. **Commit your changes**:
@@ -78,7 +77,6 @@ Here is a small checklist to get you going:
 
 10. **Submit a Pull Request**:
     Submit a Pull Request to the main repository.
-
     - Go to the [main repository](https://github.com/carthage-software/mago)
     - Click on the "New Pull Request" button
     - Select your fork and branch
@@ -100,7 +98,7 @@ To run the tests, use `just test`.
 
 Ensure your code follows the coding standards and conventions used in the project.
 
-- Run `just lint` to check your code for style issues.
+- Run `just check` to check your code for style issues.
 - Run `just fix` to automatically fix style issues.
 
 ### License

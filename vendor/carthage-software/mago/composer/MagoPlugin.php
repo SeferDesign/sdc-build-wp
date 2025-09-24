@@ -17,6 +17,11 @@ use Composer\Plugin\PluginInterface;
 use Composer\Util\ProcessExecutor;
 use Symfony\Component\Process\PhpExecutableFinder;
 
+use function array_map;
+use function assert;
+use function getenv;
+use function implode;
+
 final class MagoPlugin implements PluginInterface, EventSubscriberInterface, Capable
 {
     public const PACKAGE_NAME = 'carthage-software/mago';
@@ -104,7 +109,7 @@ final class MagoPlugin implements PluginInterface, EventSubscriberInterface, Cap
             $package = $operation->getPackage();
         }
 
-        if ($package === null) {
+        if (null === $package) {
             return false;
         }
 

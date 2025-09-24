@@ -4,6 +4,16 @@ template_dir := `mktemp -d`
 list:
     @just --list
 
+# Document linter rules
+doc-linter-rules:
+    php scripts/linter-rules-docs.php
+
+# Regenerate the analyzer issue codes.
+regen-analyzer-issue-codes:
+    rm -f crates/analyzer/src/code.rs
+    php scripts/regen-analyzer-issue-codes.php >> crates/analyzer/src/code.rs
+    rustfmt crates/analyzer/src/code.rs
+
 # Builds the library in release mode.
 build:
     cargo build --release
@@ -12,14 +22,19 @@ build:
 build-wasm:
     cd crates/wasm && wasm-pack build --release --out-dir pkg
 
-# Detects linting problems using rustfmt, clippy, and cargo check.
-lint:
+# Detects problems using rustfmt, clippy, and cargo check, and runs the linter and analyzer.
+check:
+    cargo run -- fmt --check
+    cargo run -- lint
+    cargo run -- analyze
     cargo +nightly fmt --all -- --check --unstable-features
     cargo +nightly clippy --workspace --all-targets --all-features -- -D warnings
     cargo +nightly check --workspace --locked
 
 # Fixes linting problems automatically using clippy, cargo fix, and rustfmt.
 fix:
+    cargo run -- fmt
+    cargo run -- lint --fix
     cargo +nightly clippy --workspace --all-targets --all-features --fix --allow-dirty --allow-staged
     cargo +nightly fix --allow-dirty --allow-staged
     cargo +nightly fmt --all -- --unstable-features

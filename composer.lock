@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a78a99f20e0ac75e2b9c995236428bb4",
+    "content-hash": "3d8276d2b65cce0fbe0308292190d340",
     "packages": [
         {
             "name": "carthage-software/mago",
-            "version": "1.0.0-beta.14",
+            "version": "1.0.0-beta.24",
             "source": {
                 "type": "git",
                 "url": "https://github.com/carthage-software/mago.git",
-                "reference": "28df10deb41891818aab27392e07383f3eec7b16"
+                "reference": "f98cf6ccda537e00a3a061bc2b99f74a7e9c52bc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/carthage-software/mago/zipball/28df10deb41891818aab27392e07383f3eec7b16",
-                "reference": "28df10deb41891818aab27392e07383f3eec7b16",
+                "url": "https://api.github.com/repos/carthage-software/mago/zipball/f98cf6ccda537e00a3a061bc2b99f74a7e9c52bc",
+                "reference": "f98cf6ccda537e00a3a061bc2b99f74a7e9c52bc",
                 "shasum": ""
             },
             "require": {
@@ -55,7 +55,7 @@
             ],
             "support": {
                 "issues": "https://github.com/carthage-software/mago/issues",
-                "source": "https://github.com/carthage-software/mago/tree/1.0.0-beta.14"
+                "source": "https://github.com/carthage-software/mago/tree/1.0.0-beta.24"
             },
             "funding": [
                 {
@@ -63,7 +63,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-09-12T23:21:44+00:00"
+            "time": "2025-09-24T01:57:13+00:00"
         },
         {
             "name": "squizlabs/php_codesniffer",

@@ -3,7 +3,7 @@
         'name' => 'sdc/sdc-build-wp',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '8b962d6d1c68e458e886614224a646d688ccabe5',
+        'reference' => 'ded895af062927047f885bf242cd456b2b5b4dd1',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'carthage-software/mago' => array(
-            'pretty_version' => '1.0.0-beta.14',
-            'version' => '1.0.0.0-beta14',
-            'reference' => '28df10deb41891818aab27392e07383f3eec7b16',
+            'pretty_version' => '1.0.0-beta.24',
+            'version' => '1.0.0.0-beta24',
+            'reference' => 'f98cf6ccda537e00a3a061bc2b99f74a7e9c52bc',
             'type' => 'composer-plugin',
             'install_path' => __DIR__ . '/../carthage-software/mago',
             'aliases' => array(),
@@ -22,7 +22,7 @@
         'sdc/sdc-build-wp' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '8b962d6d1c68e458e886614224a646d688ccabe5',
+            'reference' => 'ded895af062927047f885bf242cd456b2b5b4dd1',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

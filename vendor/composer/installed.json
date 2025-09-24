@@ -2,17 +2,17 @@
     "packages": [
         {
             "name": "carthage-software/mago",
-            "version": "1.0.0-beta.14",
-            "version_normalized": "1.0.0.0-beta14",
+            "version": "1.0.0-beta.24",
+            "version_normalized": "1.0.0.0-beta24",
             "source": {
                 "type": "git",
                 "url": "https://github.com/carthage-software/mago.git",
-                "reference": "28df10deb41891818aab27392e07383f3eec7b16"
+                "reference": "f98cf6ccda537e00a3a061bc2b99f74a7e9c52bc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/carthage-software/mago/zipball/28df10deb41891818aab27392e07383f3eec7b16",
-                "reference": "28df10deb41891818aab27392e07383f3eec7b16",
+                "url": "https://api.github.com/repos/carthage-software/mago/zipball/f98cf6ccda537e00a3a061bc2b99f74a7e9c52bc",
+                "reference": "f98cf6ccda537e00a3a061bc2b99f74a7e9c52bc",
                 "shasum": ""
             },
             "require": {
@@ -22,7 +22,7 @@
             "require-dev": {
                 "composer/composer": "^2.8"
             },
-            "time": "2025-09-12T23:21:44+00:00",
+            "time": "2025-09-24T01:57:13+00:00",
             "bin": [
                 "composer/bin/mago"
             ],
@@ -52,7 +52,7 @@
             ],
             "support": {
                 "issues": "https://github.com/carthage-software/mago/issues",
-                "source": "https://github.com/carthage-software/mago/tree/1.0.0-beta.14"
+                "source": "https://github.com/carthage-software/mago/tree/1.0.0-beta.24"
             },
             "funding": [
                 {

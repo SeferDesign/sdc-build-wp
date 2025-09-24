@@ -15,7 +15,17 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function array_reduce;
+use function assert;
+use function file_exists;
+use function file_get_contents;
+use function file_put_contents;
 use function is_string;
+use function php_uname;
+use function preg_replace;
+use function str_contains;
+use function str_ends_with;
+use function strtolower;
 
 /**
  * @mago-expect lint:kan-defect
