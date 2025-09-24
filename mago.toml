@@ -11,19 +11,27 @@ tab-width = 2
 use-tabs = true
 trailing-comma = false
 remove-trailing-close-tag = false
+control-brace-style = "same_line"
+closure-brace-style = "same_line"
 function-brace-style = "same_line"
 method-brace-style = "same_line"
-# classlike-brace-style = "same_line"
-# method-chain-breaking-style = "same_line"
-# inline-empty-function-braces = true
-# inline-empty-method-braces = true
-# inline-empty-classlike-braces = true
-# always-break-named-arguments-list = false
-# preserve-breaking-member-access-chain = true
-# preserve-breaking-argument-list = true
-# preserve-breaking-parameter-list = true
-# preserve-breaking-attribute-list = true
-# preserve-breaking-conditional-expression = true
+classlike-brace-style = "same_line"
+method-chain-breaking-style = "same_line"
+always-break-named-arguments-list = false
+preserve-breaking-member-access-chain = true
+preserve-breaking-array-like = true
+preserve-breaking-argument-list = true
+preserve-breaking-parameter-list = true
+preserve-breaking-attribute-list = true
+preserve-breaking-conditional-expression = true
+space-before-arrow-function-parameter-list-parenthesis = false
+space-before-closure-parameter-list-parenthesis = false
+space-before-hook-parameter-list-parenthesis = false
+space-before-closure-use-clause-parenthesis = false
+empty-line-after-opening-tag = false
 
 [linter]
 integrations = ["wordpress"]
+
+[linter.rules]
+yoda-conditions = { enabled = false }
