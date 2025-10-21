@@ -22,13 +22,13 @@
 		"sdc-build-wp": "./index.js"
 	},
 	"dependencies": {
-		"@inquirer/prompts": "^7.9.0",
 		"@stylistic/eslint-plugin": "^5.4.0",
 		"@stylistic/stylelint-plugin": "^4.0.0",
 		"@typescript-eslint/eslint-plugin": "^8.46.1",
 		"@typescript-eslint/parser": "^8.46.1",
 		"@wordpress/scripts": "^30.25.0",
 		"autoprefixer": "^10.4.21",
+		"blessed": "^0.1.81",
 		"browser-sync": "^3.0.4",
 		"chalk": "^5.6.2",
 		"chokidar": "^4.0.3",
