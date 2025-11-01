@@ -34,8 +34,7 @@ jobs:
               echo 'release-body<<EOF'
               echo '## Commits'
               echo ''
-              echo $COMMITS
-              echo "$RELEASE_BODY"
+              echo "$COMMITS"
               echo 'EOF'
             } >> $GITHUB_OUTPUT
           else
