@@ -18,11 +18,20 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Get previous tag
+        id: previous-tag
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "previous-tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
       - uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           draft: false
           prerelease: false
+          body: |
+            ${{ steps.previous-tag.outputs.previous-tag && format('**Full Changelog**: https://github.com/{0}/compare/{1}...{2}', github.repository, steps.previous-tag.outputs.previous-tag, github.ref_name) || 'Initial release' }}
   publish:
     needs: tagged-release
     runs-on: ubuntu-latest
