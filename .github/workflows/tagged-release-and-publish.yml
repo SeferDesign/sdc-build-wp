@@ -30,21 +30,27 @@ jobs:
         run: |
           if [ -n "${{ steps.previous-tag.outputs.previous-tag }}" ]; then
             COMMITS=$(git log --oneline ${{ steps.previous-tag.outputs.previous-tag }}..HEAD --pretty=format:"* %h %s")
+            # Create the full release body content
+            RELEASE_BODY="## Commits
+
+$COMMITS
+
+"
             {
-              echo 'commits<<EOF'
-              echo "$COMMITS"
+              echo 'release-body<<EOF'
+              echo "$RELEASE_BODY"
               echo 'EOF'
             } >> $GITHUB_OUTPUT
           else
-            echo "commits=" >> $GITHUB_OUTPUT
+            echo "release-body=" >> $GITHUB_OUTPUT
           fi
       - uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           draft: false
           prerelease: false
-          body: |
-            ${{ steps.commit-list.outputs.commits != '' && format('## Commits\n\n{0}\n\n', steps.commit-list.outputs.commits) || '' }}
+          body: ${{ steps.commit-list.outputs.release-body }}
+
   publish:
     needs: tagged-release
     runs-on: ubuntu-latest
