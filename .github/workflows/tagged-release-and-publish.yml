@@ -29,10 +29,12 @@ jobs:
         id: commit-list
         run: |
           if [ -n "${{ steps.previous-tag.outputs.previous-tag }}" ]; then
-            COMMITS=$(git log --oneline ${{ steps.previous-tag.outputs.previous-tag }}..HEAD --pretty=format:"%h %s")
-            # Convert newlines to literal \n for GitHub Actions
-            COMMITS="${COMMITS//$'\n'/\\n}"
-            echo "commits=$COMMITS" >> $GITHUB_OUTPUT
+            COMMITS=$(git log --oneline ${{ steps.previous-tag.outputs.previous-tag }}..HEAD --pretty=format:"* %h %s")
+            {
+              echo 'commits<<EOF'
+              echo "$COMMITS"
+              echo 'EOF'
+            } >> $GITHUB_OUTPUT
           else
             echo "commits=" >> $GITHUB_OUTPUT
           fi
@@ -42,7 +44,7 @@ jobs:
           draft: false
           prerelease: false
           body: |
-            ${{ steps.commit-list.outputs.commits && format('## Commits\n\n%s\n\n', steps.commit-list.outputs.commits) || '' }}
+            ${{ steps.commit-list.outputs.commits != '' && format('## Commits\n\n{0}\n\n', steps.commit-list.outputs.commits) || '' }}
   publish:
     needs: tagged-release
     runs-on: ubuntu-latest
