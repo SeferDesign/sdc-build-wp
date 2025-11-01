@@ -30,14 +30,11 @@ jobs:
         run: |
           if [ -n "${{ steps.previous-tag.outputs.previous-tag }}" ]; then
             COMMITS=$(git log --oneline ${{ steps.previous-tag.outputs.previous-tag }}..HEAD --pretty=format:"* %h %s")
-            # Create the full release body content
-            RELEASE_BODY="## Commits
-
-$COMMITS
-
-"
             {
               echo 'release-body<<EOF'
+              echo '## Commits'
+              echo ''
+              echo $COMMITS
               echo "$RELEASE_BODY"
               echo 'EOF'
             } >> $GITHUB_OUTPUT
