@@ -6,42 +6,59 @@ on:
     tags:
       - "v*"
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   tagged-release:
     name: "Tagged Release"
     runs-on: "ubuntu-latest"
-
+    permissions:
+      contents: write
     steps:
-      # ...
-      - name: "Build & test"
-        run: |
-          echo "done!"
-
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      - uses: actions/checkout@v4
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          fetch-depth: 0
+      - name: Get previous tag
+        id: previous-tag
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "previous-tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+      - name: Generate commit list
+        id: commit-list
+        run: |
+          if [ -n "${{ steps.previous-tag.outputs.previous-tag }}" ]; then
+            COMMITS=$(git log --oneline ${{ steps.previous-tag.outputs.previous-tag }}..HEAD --pretty=format:"* %h %s")
+            {
+              echo 'release-body<<EOF'
+              echo '## Commits'
+              echo ''
+              echo "$COMMITS"
+              echo 'EOF'
+            } >> $GITHUB_OUTPUT
+          else
+            echo "release-body=" >> $GITHUB_OUTPUT
+          fi
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          draft: false
           prerelease: false
-  build:
+          body: ${{ steps.commit-list.outputs.release-body }}
+
+  publish:
     needs: tagged-release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Update npm
+        run: npm install -g npm@latest
       - run: npm ci
+      - run: npm run build --if-present
       - run: npm test
-
-  publish-npm:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: 16
-          registry-url: https://registry.npmjs.org/
-      - run: npm ci
       - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}

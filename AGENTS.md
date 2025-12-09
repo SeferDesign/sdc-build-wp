@@ -1,6 +1,6 @@
-# GitHub Copilot Instructions
+# Agents Instructions
 
-This document serves as a guide to leveraging GitHub Copilot for working within the `sdc-build-wp` repo. See `README.md` for more information about this package. Below are the essential instructions and guidelines:
+This document serves as a guide to leveraging agents for working within the `sdc-build-wp` repo. See `README.md` for more information about this package. Below are the essential instructions and guidelines:
 
 ## Watch Commands
 

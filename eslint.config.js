@@ -24,6 +24,7 @@ export default defineConfig([
 					max: 1
 				}
 			],
+			'no-var': 1,
 			'@stylistic/quotes': [1, 'single']
 		}
 	}
