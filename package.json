@@ -33,7 +33,6 @@
 		"chokidar": "^5.0.0",
 		"esbuild": "^0.27.1",
 		"eslint": "^9.39.1",
-		"fs-extra": "^11.3.2",
 		"postcss": "^8.5.6",
 		"postcss-scss": "^4.0.9",
 		"postcss-sort-media-queries": "^5.2.0",
