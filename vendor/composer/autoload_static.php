@@ -6,18 +6,9 @@ namespace Composer\Autoload;
 
 class ComposerStaticInit3d8276d2b65cce0fbe0308292190d340
 {
-    public static $prefixLengthsPsr4 = array (
-        'M' => 
-        array (
-            'Mago\\' => 5,
-        ),
-    );
-
-    public static $prefixDirsPsr4 = array (
-        'Mago\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/carthage-software/mago/composer',
-        ),
+    public static $files = array (
+        '308987240302a64b53a87123efb5e008' => __DIR__ . '/..' . '/carthage-software/mago/composer/functions.php',
+        '6712df3a927b219575eeadea9f5e33c0' => __DIR__ . '/..' . '/carthage-software/mago/composer/internal.php',
     );
 
     public static $classMap = array (
@@ -27,8 +18,6 @@ class ComposerStaticInit3d8276d2b65cce0fbe0308292190d340
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit3d8276d2b65cce0fbe0308292190d340::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit3d8276d2b65cce0fbe0308292190d340::$prefixDirsPsr4;
             $loader->classMap = ComposerStaticInit3d8276d2b65cce0fbe0308292190d340::$classMap;
 
         }, null, ClassLoader::class);

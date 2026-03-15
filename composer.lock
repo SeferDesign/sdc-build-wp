@@ -4,40 +4,37 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3d8276d2b65cce0fbe0308292190d340",
+    "content-hash": "d54857f6a53ef845934f419602f1bd7e",
     "packages": [
         {
             "name": "carthage-software/mago",
-            "version": "1.0.0-beta.24",
+            "version": "1.14.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/carthage-software/mago.git",
-                "reference": "f98cf6ccda537e00a3a061bc2b99f74a7e9c52bc"
+                "reference": "00957008352c130f7672bcaab754a278a0a4950b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/carthage-software/mago/zipball/f98cf6ccda537e00a3a061bc2b99f74a7e9c52bc",
-                "reference": "f98cf6ccda537e00a3a061bc2b99f74a7e9c52bc",
+                "url": "https://api.github.com/repos/carthage-software/mago/zipball/00957008352c130f7672bcaab754a278a0a4950b",
+                "reference": "00957008352c130f7672bcaab754a278a0a4950b",
                 "shasum": ""
             },
             "require": {
-                "composer-plugin-api": "^2.6",
-                "php": "~8.1 || ~8.2 || ~8.3 || ~8.4"
+                "php": "~8.1 || ~8.2 || ~8.3 || ~8.4 || ~8.5 || ~8.6"
             },
-            "require-dev": {
-                "composer/composer": "^2.8"
+            "suggest": {
+                "ext-curl": "To show binary download progress"
             },
             "bin": [
                 "composer/bin/mago"
             ],
-            "type": "composer-plugin",
-            "extra": {
-                "class": "Mago\\MagoPlugin"
-            },
+            "type": "library",
             "autoload": {
-                "psr-4": {
-                    "Mago\\": "composer/"
-                }
+                "files": [
+                    "composer/functions.php",
+                    "composer/internal.php"
+                ]
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -55,7 +52,7 @@
             ],
             "support": {
                 "issues": "https://github.com/carthage-software/mago/issues",
-                "source": "https://github.com/carthage-software/mago/tree/1.0.0-beta.24"
+                "source": "https://github.com/carthage-software/mago/tree/1.14.1"
             },
             "funding": [
                 {
@@ -63,7 +60,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-09-24T01:57:13+00:00"
+            "time": "2026-03-14T00:50:47+00:00"
         },
         {
             "name": "squizlabs/php_codesniffer",
@@ -153,12 +150,10 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "carthage-software/mago": 10
-    },
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {},
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
