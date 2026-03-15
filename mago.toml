@@ -28,8 +28,8 @@ method-chain-breaking-style = "same-line"
 always-break-named-arguments-list = false
 preserve-breaking-member-access-chain = true
 preserve-breaking-array-like = true
-preserve-breaking-argument-list = true
-preserve-breaking-parameter-list = true
+preserve-breaking-argument-list = false
+preserve-breaking-parameter-list = false
 preserve-breaking-attribute-list = true
 preserve-breaking-conditional-expression = true
 space-before-arrow-function-parameter-list-parenthesis = false
@@ -50,6 +50,23 @@ no-closing-tag = { enabled = false }
 literal-named-argument = { enabled = false }
 strict-types = { enabled = false }
 yoda-conditions = { enabled = false }
+identity-comparison = { enabled = false }
+no-empty = { enabled = false }
+no-isset = { enabled = false }
+strict-behavior = { enabled = false }
+no-global = { enabled = false }
+function-name = { enabled = false }
+no-else-clause = { enabled = false }
+no-assign-in-condition = { enabled = false }
+excessive-parameter-list = { enabled = false }
+halstead = { enabled = false }
+no-redundant-string-concat = { enabled = false }
+no-redundant-parentheses = { enabled = false }
+inline-variable-return = { enabled = false }
+prefer-arrow-function = { enabled = false }
+readable-literal = { enabled = false }
+str-contains = { enabled = false }
+cyclomatic-complexity = { level = "warn", threshold = 35 }
 # wordpress
 use-wp-functions = { enabled = true }
 no-direct-db-query = { enabled = false }
