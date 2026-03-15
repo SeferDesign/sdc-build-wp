@@ -1,22 +1,30 @@
-# Welcome to Mago!
-# For full documentation, see https://mago.carthage.software/tools/overview
+# See https://mago.carthage.software/tools/overview
 
 [source]
-excludes = ["./node_modules", "./vendor", "./build", "./dist", "./.git", "./.github", "./.vscode"]
+excludes = [
+	"./node_modules",
+	"./vendor",
+	"./build",
+	"./dist",
+	"./.git",
+	"./.github",
+	"./.vscode",
+	"./blocks/**/build/**/*.php"
+]
 
 # https://mago.carthage.software/tools/formatter/configuration-reference
 [formatter]
 print-width = 9999
-tab-width = 2
 use-tabs = true
+tab-width = 2
 trailing-comma = false
 remove-trailing-close-tag = false
-control-brace-style = "same_line"
-closure-brace-style = "same_line"
-function-brace-style = "same_line"
-method-brace-style = "same_line"
-classlike-brace-style = "same_line"
-method-chain-breaking-style = "same_line"
+control-brace-style = "same-line"
+closure-brace-style = "same-line"
+function-brace-style = "same-line"
+method-brace-style = "same-line"
+classlike-brace-style = "same-line"
+method-chain-breaking-style = "same-line"
 always-break-named-arguments-list = false
 preserve-breaking-member-access-chain = true
 preserve-breaking-array-like = true
@@ -29,9 +37,22 @@ space-before-closure-parameter-list-parenthesis = false
 space-before-hook-parameter-list-parenthesis = false
 space-before-closure-use-clause-parenthesis = false
 empty-line-after-opening-tag = false
+empty-line-after-class-like-open = true
+empty-line-after-class-like-constant = true
+empty-line-before-class-like-close = true
+empty-line-after-enum-case = true
 
 [linter]
 integrations = ["wordpress"]
 
 [linter.rules]
+no-closing-tag = { enabled = false }
+literal-named-argument = { enabled = false }
+strict-types = { enabled = false }
 yoda-conditions = { enabled = false }
+# wordpress
+use-wp-functions = { enabled = true }
+no-direct-db-query = { enabled = false }
+no-db-schema-change = { enabled = false }
+no-unescaped-output = { enabled = false }
+no-roles-as-capabilities = { enabled = false }
