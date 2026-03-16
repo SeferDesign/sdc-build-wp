@@ -16,7 +16,8 @@
 	},
 	"type": "module",
 	"scripts": {
-		"test": "echo \"Skipping tests.\""
+		"test": "echo \"Skipping tests.\"",
+		"release": "node lib/release.js"
 	},
 	"bin": {
 		"sdc-build-wp": "./index.js"
