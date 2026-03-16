@@ -1,6 +1,7 @@
 {
 	"plugins": [
-		"@stylistic/stylelint-plugin"
+		"@stylistic/stylelint-plugin",
+		"stylelint-use-logical"
 	],
 	"rules": {
 		"@stylistic/indentation": "tab",
@@ -21,6 +22,7 @@
 		"color-named": "never",
 		"shorthand-property-no-redundant-values": true,
 		"@stylistic/number-leading-zero": "always",
-		"@stylistic/no-eol-whitespace": true
+		"@stylistic/no-eol-whitespace": true,
+		"csstools/use-logical": ["always", { "except": ["width", "height", "min-width", "max-width", "min-height", "max-height", "top", "right", "bottom", "left"] }]
 	}
 }
