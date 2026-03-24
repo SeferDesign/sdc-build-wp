@@ -34,7 +34,7 @@
 	<rule ref="Generic.Formatting.DisallowMultipleStatements"/>
 	<rule ref="Generic.Functions.OpeningFunctionBraceKernighanRitchie">
 		<properties>
-			<property name="checkFunctions" value="false" />
+			<property name="checkFunctions" value="true" />
 			<property name="checkClosures" value="true" />
 		</properties>
 	</rule>
