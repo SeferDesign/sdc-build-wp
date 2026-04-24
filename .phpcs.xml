@@ -13,12 +13,6 @@
 	</rule>
 	<rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
 	<rule ref="Generic.WhiteSpace.LanguageConstructSpacing"/>
-	<rule ref="Generic.WhiteSpace.ScopeIndent">
-		<properties>
-			<property name="exact" value="true" />
-			<property name="indent" value="2"/>
-		</properties>
-	</rule>
 	<rule ref="Generic.WhiteSpace.ArbitraryParenthesesSpacing"/>
 	<rule ref="Generic.WhiteSpace.DisallowTabIndent"/>
 	<rule ref="Generic.CodeAnalysis.EmptyPHPStatement"/>
