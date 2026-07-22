@@ -3,7 +3,7 @@
         'name' => 'sdc/sdc-build-wp',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'b6c7d63c647ca49bf194ca673fbcba43531fc1ac',
+        'reference' => 'edbb60fa8a222e2c1b0ef1eaa14375c21e2d26bd',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -22,7 +22,7 @@
         'sdc/sdc-build-wp' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'b6c7d63c647ca49bf194ca673fbcba43531fc1ac',
+            'reference' => 'edbb60fa8a222e2c1b0ef1eaa14375c21e2d26bd',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
