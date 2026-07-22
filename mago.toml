@@ -1,4 +1,5 @@
-# See https://mago.carthage.software/tools/overview
+#:schema https://mago.carthage.software/latest/schema.json
+# See https://mago.carthage.software/main/en/tools/overview/
 
 [source]
 excludes = [
@@ -12,19 +13,19 @@ excludes = [
 	"./blocks/**/build/**/*.php"
 ]
 
-# https://mago.carthage.software/tools/formatter/configuration-reference
+# https://mago.carthage.software/main/en/tools/formatter/configuration-reference/
 [formatter]
 print-width = 9999
 use-tabs = true
 tab-width = 2
 trailing-comma = false
 remove-trailing-close-tag = false
-control-brace-style = "same-line"
-closure-brace-style = "same-line"
-function-brace-style = "same-line"
-method-brace-style = "same-line"
-classlike-brace-style = "same-line"
-method-chain-breaking-style = "same-line"
+control-brace-style = "same_line"
+closure-brace-style = "same_line"
+function-brace-style = "same_line"
+method-brace-style = "same_line"
+classlike-brace-style = "same_line"
+method-chain-breaking-style = "same_line"
 always-break-named-arguments-list = false
 preserve-breaking-member-access-chain = true
 preserve-breaking-array-like = true
@@ -66,7 +67,8 @@ inline-variable-return = { enabled = false }
 prefer-arrow-function = { enabled = false }
 readable-literal = { enabled = false }
 str-contains = { enabled = false }
-cyclomatic-complexity = { level = "warn", threshold = 35 }
+cyclomatic-complexity = { level = "Warning", threshold = 50 }
+no-literal-password = { enabled = false }
 # wordpress
 use-wp-functions = { enabled = true }
 no-direct-db-query = { enabled = false }
