@@ -8,11 +8,15 @@
         }
     ],
     "config": {
+        "platform": {
+            "php": "8.2.27"
+        },
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true
         }
     },
     "require": {
-        "squizlabs/php_codesniffer": "^4.0"
+        "squizlabs/php_codesniffer": "^4.0",
+        "friendsofphp/php-cs-fixer": "^3.95"
     }
 }
