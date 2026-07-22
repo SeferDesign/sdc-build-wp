@@ -6,6 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    '308987240302a64b53a87123efb5e008' => $vendorDir . '/carthage-software/mago/composer/functions.php',
-    '6712df3a927b219575eeadea9f5e33c0' => $vendorDir . '/carthage-software/mago/composer/internal.php',
+    'e2ee31352e83f6e290ef187473015465' => $vendorDir . '/carthage-software/mago/composer/src/functions.php',
+    'dd04dc0ee741b4c1fa282b2a1896f3d4' => $vendorDir . '/carthage-software/mago/composer/src/internal.php',
 );

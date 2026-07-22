@@ -13,12 +13,6 @@
 	</rule>
 	<rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
 	<rule ref="Generic.WhiteSpace.LanguageConstructSpacing"/>
-	<rule ref="Generic.WhiteSpace.ScopeIndent">
-		<properties>
-			<property name="exact" value="true" />
-			<property name="indent" value="2"/>
-		</properties>
-	</rule>
 	<rule ref="Generic.WhiteSpace.ArbitraryParenthesesSpacing"/>
 	<rule ref="Generic.WhiteSpace.DisallowTabIndent"/>
 	<rule ref="Generic.CodeAnalysis.EmptyPHPStatement"/>
@@ -34,7 +28,7 @@
 	<rule ref="Generic.Formatting.DisallowMultipleStatements"/>
 	<rule ref="Generic.Functions.OpeningFunctionBraceKernighanRitchie">
 		<properties>
-			<property name="checkFunctions" value="false" />
+			<property name="checkFunctions" value="true" />
 			<property name="checkClosures" value="true" />
 		</properties>
 	</rule>
@@ -78,5 +72,4 @@
 	<rule ref="Squiz.WhiteSpace.SemicolonSpacing"/>
 	<rule ref="Squiz.WhiteSpace.SuperfluousWhitespace"/>
 	<rule ref="Squiz.WhiteSpace.LogicalOperatorSpacing"/>
-	<rule ref="Squiz.WhiteSpace.LanguageConstructSpacing"/>
 </ruleset>

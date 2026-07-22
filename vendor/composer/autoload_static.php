@@ -4,11 +4,25 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit3d8276d2b65cce0fbe0308292190d340
+class ComposerStaticInitafe1117609b58810e17e88612bc535c9
 {
     public static $files = array (
-        '308987240302a64b53a87123efb5e008' => __DIR__ . '/..' . '/carthage-software/mago/composer/functions.php',
-        '6712df3a927b219575eeadea9f5e33c0' => __DIR__ . '/..' . '/carthage-software/mago/composer/internal.php',
+        'e2ee31352e83f6e290ef187473015465' => __DIR__ . '/..' . '/carthage-software/mago/composer/src/functions.php',
+        'dd04dc0ee741b4c1fa282b2a1896f3d4' => __DIR__ . '/..' . '/carthage-software/mago/composer/src/internal.php',
+    );
+
+    public static $prefixLengthsPsr4 = array (
+        'M' =>
+        array (
+            'Mago\\' => 5,
+        ),
+    );
+
+    public static $prefixDirsPsr4 = array (
+        'Mago\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/carthage-software/mago/composer/src',
+        ),
     );
 
     public static $classMap = array (
@@ -18,7 +32,9 @@ class ComposerStaticInit3d8276d2b65cce0fbe0308292190d340
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->classMap = ComposerStaticInit3d8276d2b65cce0fbe0308292190d340::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitafe1117609b58810e17e88612bc535c9::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitafe1117609b58810e17e88612bc535c9::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitafe1117609b58810e17e88612bc535c9::$classMap;
 
         }, null, ClassLoader::class);
     }

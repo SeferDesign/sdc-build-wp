@@ -4,8 +4,9 @@
  *
  * @author    Greg Sherwood <gsherwood@squiz.net>
  * @author    Blaine Schmeisser <blainesch@gmail.com>
- * @copyright 2006-2015 Squiz Pty Ltd (ABN 77 084 670 600)
- * @license   https://github.com/PHPCSStandards/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
+ * @copyright 2006-2023 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2023 PHPCSStandards and contributors
+ * @license   https://github.com/PHPCSStandards/PHP_CodeSniffer/blob/HEAD/licence.txt BSD Licence
  */
 
 namespace PHP_CodeSniffer\Standards\Generic\Sniffs\PHP;
@@ -37,8 +38,7 @@ class SyntaxSniff implements Sniff
             T_OPEN_TAG,
             T_OPEN_TAG_WITH_ECHO,
         ];
-
-    }//end register()
+    }
 
 
     /**
@@ -50,7 +50,7 @@ class SyntaxSniff implements Sniff
      *
      * @return int
      */
-    public function process(File $phpcsFile, $stackPtr)
+    public function process(File $phpcsFile, int $stackPtr)
     {
         if ($this->phpPath === null) {
             $this->phpPath = Config::getExecutablePath('php');
@@ -67,8 +67,7 @@ class SyntaxSniff implements Sniff
 
         // Ignore the rest of the file.
         return $phpcsFile->numTokens;
-
-    }//end process()
+    }
 
 
     /**
@@ -97,8 +96,5 @@ class SyntaxSniff implements Sniff
             Common::escapeshellcmd($this->phpPath),
             $fileName
         );
-
-    }//end getPhpLintCommand()
-
-
-}//end class
+    }
+}
