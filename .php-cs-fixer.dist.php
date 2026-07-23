@@ -18,6 +18,7 @@ return (new PhpCsFixer\Config())
 		'array_indentation' => true,
 		'binary_operator_spaces' => ['default' => 'single_space'],
 		'line_ending' => true,
+		'spaces_inside_parentheses' => ['space' => 'none'],
 		'no_trailing_whitespace' => true,
 		'no_whitespace_in_blank_line' => true,
 		'single_blank_line_at_eof' => true,
