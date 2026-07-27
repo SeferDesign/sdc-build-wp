@@ -44,8 +44,6 @@ jobs:
       - uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
-          draft: false
-          prerelease: false
           body: ${{ steps.commit-list.outputs.release-body }}
 
   publish:
