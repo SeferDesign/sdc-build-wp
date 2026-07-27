@@ -17,7 +17,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Get previous tag
@@ -40,7 +41,7 @@ jobs:
           else
             echo "release-body=" >> $GITHUB_OUTPUT
           fi
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
           draft: false
@@ -51,7 +52,7 @@ jobs:
     needs: tagged-release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
