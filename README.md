@@ -39,7 +39,7 @@ While watch is enabled, use the following keyboard commands to control the build
 
 ```sh
 [r]     Restart build process
-[c]     Clear cache
+[c]     Clear cache and restart
 [p]     Pause/Resume watching
 [n]     New component
 [q]     Quit
