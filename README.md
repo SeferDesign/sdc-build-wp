@@ -17,6 +17,22 @@ sdc-build-wp --no-cache        # Disable caching for this build
 sdc-build-wp --clear-cache     # Clear all cached data
 ```
 
+## Configuration
+
+Optional concurrency caps can be set in `.sdc-build-wp/config.json` to keep expensive builds parallel without oversubscribing the machine.
+
+```json
+{
+	"buildConcurrency": {
+		"default": 10,
+		"style": 10,
+		"scripts": 10,
+		"blocks": 10,
+		"images": 10
+	}
+}
+```
+
 ## Watch
 
 While watch is enabled, use the following keyboard commands to control the build process:
