@@ -16,9 +16,11 @@ return (new PhpCsFixer\Config())
 	->setLineEnding("\n")
 	->setRules([
 		'array_indentation' => true,
+		'array_syntax' => ['syntax' => 'short'],
 		'binary_operator_spaces' => ['default' => 'single_space'],
 		'line_ending' => true,
 		'spaces_inside_parentheses' => ['space' => 'none'],
+		'not_operator_with_space' => false,
 		'no_trailing_whitespace' => true,
 		'no_whitespace_in_blank_line' => true,
 		'single_blank_line_at_eof' => true,
