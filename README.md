@@ -19,7 +19,7 @@ sdc-build-wp --clear-cache     # Clear all cached data
 
 ## Configuration
 
-Optional concurrency caps can be set in `.sdc-build-wp/config.json` to keep expensive builds parallel without oversubscribing the machine.
+Optional concurrency caps can be set in `.sdc-build-wp/config.json` to keep expensive builds parallel without oversubscribing the machine. By default, concurrency is based on available CPU cores (with a minimum, even on single-core machines, since builds spend meaningful time on process startup/IO rather than pure CPU work).
 
 ```json
 {
