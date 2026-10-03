@@ -14,6 +14,8 @@ Caching speeds up subsequent builds by only rebuilding files that have changed o
 
 Cache manifest updates are batched during the initial build and coalesced over 100ms in watch mode. Writes are serialized and atomic, and pending updates are flushed before restarting or exiting.
 
+Script dependency graphs are refreshed after lint fixes, once per processed entry, and reused for cache checks. Watch rebuilds refresh only affected entries when the changed file is already in the graph.
+
 ```sh
 sdc-build-wp --no-cache        # Disable caching for this build
 sdc-build-wp --clear-cache     # Clear all cached data
