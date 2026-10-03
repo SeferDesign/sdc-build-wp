@@ -16,7 +16,7 @@
 	},
 	"type": "module",
 	"scripts": {
-		"test": "echo \"Skipping tests.\"",
+		"test": "node --test tests/*.test.js",
 		"release": "node lib/release.js patch",
 		"release:patch": "npm run release",
 		"release:minor": "node lib/release.js minor",
