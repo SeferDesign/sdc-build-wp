@@ -71,6 +71,15 @@ sdc-build-wp-local --watch
 
 ## Release
 
+Run `npm run test:coverage` for the full suite with Node's built-in line, branch,
+and function coverage report for `lib`. CLI integration subprocesses contribute
+to the report; external PHP tooling and generated bundles are not measured.
+Additional unit tests cover configuration validation, dependency resolution,
+asset processing, HTML formatting, and block build/cache/queue failure handling.
+Block orchestration tests stub webpack execution rather than compile a full block.
+Cache lifecycle, Sass dependency updates, and watcher event routing also have
+regression coverage. Watcher unit tests simulate events without starting servers.
+
 Run the fixture directly with `npm run build:theme`, or run its build and PHP
 integration tests with `npm run test:theme`. The direct build writes ignored
 output and cache files inside the fixture and processes styles, scripts, and

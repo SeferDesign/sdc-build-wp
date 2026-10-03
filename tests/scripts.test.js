@@ -75,3 +75,18 @@ test('scripts keep isBuilding true until all scheduled entries finish', async t 
 	await processing;
 	assert.equal(component.isBuilding, false);
 });
+
+test('script processing clears building state on lint and build failures', async t => {
+	const component = new ScriptsComponent();
+	component.files = [{ file: 'entry.js' }];
+	t.mock.method(component, 'lint', async () => new Error('lint failed'));
+	await assert.rejects(component.process(), /lint failed/);
+	assert.equal(component.isBuilding, false);
+	t.mock.method(component, 'lint', async () => true);
+	t.mock.method(component, 'rebuildDependencyGraph', async () => {});
+	t.mock.method(component, 'build', async () => { throw new Error('build failed'); });
+	await assert.rejects(component.process(), /build failed/);
+	assert.equal(component.isBuilding, false);
+	assert.deepEqual(await component.process(['absent.js']), []);
+	assert.equal(component.isBuilding, false);
+});

@@ -176,3 +176,85 @@ test('missing files are rechecked if they appear without an invalidation event',
 	await fs.writeFile(file, 'new content');
 	assert.notEqual(await cache.getFileHash(file), null);
 });
+
+test('manifest loading rejects old versions and malformed data and retains valid entries', async t => {
+	const cache = await createCache(t);
+	t.mock.method(cache, 'getPackageVersion', async () => 'current');
+	for (const content of ['not json', JSON.stringify({ version: 'old', entries: { stale: {} } })]) {
+		await fs.writeFile(cache.manifestPath, content);
+		await cache.loadManifest();
+		assert.equal(cache.manifest.version, 'current');
+		assert.deepEqual(cache.manifest.entries, {});
+	}
+	await fs.writeFile(cache.manifestPath, JSON.stringify({ version: 'current', entries: { retained: { timestamp: 1 } } }));
+	await cache.loadManifest();
+	assert.equal(cache.manifest.entries.retained.timestamp, 1);
+});
+
+test('cache removes expired and missing entries but retains fresh files', async t => {
+	const cache = await createCache(t);
+	const input = path.join(cache.cacheDir, 'input.js');
+	await fs.writeFile(input, 'source');
+	cache.manifest.entries = {
+		fresh: { inputFile: input, timestamp: Date.now() },
+		expired: { inputFile: input, timestamp: Date.now() - 8 * 86400000 },
+		missing: { inputFile: input + '.missing', timestamp: Date.now() }
+	};
+	const logs = [];
+	cache.log = (type, message) => logs.push(message);
+	await cache.cleanStaleEntries();
+	await cache.flushManifest();
+	assert.deepEqual(Object.keys(cache.manifest.entries), ['fresh']);
+	assert.match(logs.join('\n'), /Cleaned 2 stale cache entries/);
+	assert.deepEqual(Object.keys(JSON.parse(await fs.readFile(cache.manifestPath)).entries), ['fresh']);
+});
+
+test('clearing cache resets persisted entries and both hash stores', async t => {
+	const cache = await createCache(t);
+	cache.log = () => {};
+	t.mock.method(cache, 'getPackageVersion', async () => 'current');
+	cache.manifest.entries.old = {};
+	cache.hashCache.set('file', 'hash');
+	cache.hashRequests.set('file', Promise.resolve('hash'));
+	await cache.saveManifest();
+	await cache.clearCache();
+	assert.deepEqual(await fs.readdir(cache.cacheDir), []);
+	assert.deepEqual(cache.manifest.entries, {});
+	assert.equal(cache.manifest.version, 'current');
+	assert.equal(cache.hashCache.size, 0);
+	assert.equal(cache.hashRequests.size, 0);
+});
+
+test('cache ignore entry is created once without overwriting existing content', async t => {
+	const cache = await createCache(t);
+	cache.project = { ...project, path: cache.cacheDir, sdcDir: path.join(cache.cacheDir, '.sdc-build-wp') };
+	cache.log = () => {};
+	const ignore = path.join(cache.cacheDir, '.gitignore');
+	await cache.ensureGitignore();
+	const expected = `.sdc-build-wp/${path.basename(cache.cacheDir)}\n`;
+	assert.equal(await fs.readFile(ignore, 'utf8'), expected);
+	await fs.writeFile(ignore, 'node_modules');
+	await cache.ensureGitignore();
+	await cache.ensureGitignore();
+	assert.equal(await fs.readFile(ignore, 'utf8'), 'node_modules\n' + expected);
+});
+
+test('cache info, stat hashing and direct input invalidation reflect changes', async t => {
+	const cache = await createCache(t);
+	const input = path.join(cache.cacheDir, 'input.js');
+	const output = path.join(cache.cacheDir, 'output.js');
+	assert.equal(cache.getCacheInfo(input, output).exists, false);
+	assert.equal(await cache.getFileStatsHash(input), null);
+	await fs.writeFile(input, 'original');
+	await fs.writeFile(output, 'output');
+	const before = await cache.getFileStatsHash(input);
+	await cache.updateCache(input, output);
+	assert.equal(cache.getCacheInfo(input, output).inMemoryCache, true);
+	await fs.writeFile(input, 'changed-length');
+	cache.clearHashCache(input);
+	assert.notEqual(await cache.getFileStatsHash(input), before);
+	assert.equal(await cache.needsRebuild(input, output), true);
+	await cache.invalidateFile(input);
+	assert.equal(cache.getCacheInfo(input, output).exists, false);
+	assert.equal(cache.hashCache.has(input), false);
+});

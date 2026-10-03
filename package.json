@@ -17,6 +17,7 @@
 	"type": "module",
 	"scripts": {
 		"test": "node --test tests/*.test.js",
+		"test:coverage": "node --experimental-test-coverage --test --test-coverage-include='lib/**/*.js' tests/*.test.js",
 		"test:theme": "node --test tests/build.test.js tests/php.test.js",
 		"build:theme": "cd tests/fixtures/theme && node ../../../index.js --builds=style,scripts,images",
 		"build:theme:watch": "npm run build:theme -- --watch",
