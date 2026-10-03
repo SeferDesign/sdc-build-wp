@@ -1,0 +1,12 @@
+{
+	"entries": {
+		"style/main": ["/_src/style/main.scss"],
+		"scripts/main": ["/_src/scripts/main.js"]
+	},
+	"buildConcurrency": {
+		"total": 2
+	},
+	"php": {
+		"enabled": false
+	}
+}

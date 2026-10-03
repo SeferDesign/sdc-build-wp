@@ -1,0 +1,3 @@
+/dist/
+.sdc-build-wp/cache
+/_src/style/partials/_theme.scss

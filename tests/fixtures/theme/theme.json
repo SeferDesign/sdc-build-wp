@@ -1,0 +1,18 @@
+{
+	"version": 3,
+	"settings": {
+		"color": {
+			"palette": [
+				{ "slug": "brand", "name": "Brand", "color": "#123456" }
+			]
+		},
+		"layout": {
+			"contentSize": "640px"
+		}
+	},
+	"styles": {
+		"typography": {
+			"fontSize": "16px"
+		}
+	}
+}

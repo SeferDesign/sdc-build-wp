@@ -1,0 +1,6 @@
+@use 'partials/tokens';
+
+.fixture {
+	color: tokens.$accent;
+	display: flex;
+}

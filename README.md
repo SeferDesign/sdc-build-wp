@@ -71,6 +71,24 @@ sdc-build-wp-local --watch
 
 ## Release
 
+Run the fixture directly with `npm run build:theme`, or run its build and PHP
+integration tests with `npm run test:theme`. The direct build writes ignored
+output and cache files inside the fixture and processes styles, scripts, and
+images; PHP linting is exercised by `test:theme`. Pass extra build options with
+`npm run build:theme -- --no-cache`.
+Use `npm run build:theme:watch` to watch the fixture and rebuild styles, scripts,
+and images on changes without starting BrowserSync. Quit with `q` or Ctrl+C.
+
+`npm test` includes a real CLI build of the theme in `tests/fixtures/theme`.
+Tests build a temporary copy, verify Sass, JavaScript, SVG output and source maps,
+and check cache reuse, dependency changes, missing outputs, and `--no-cache`.
+The fixture stays unchanged. A block render PHP fixture also tests discovery,
+linting, formatting, and rejection of syntax and coding-standard errors through
+the PHP component. Run `composer install` and have PHP available before running
+the full suite; release CI installs these tools automatically. No WordPress
+server is required. Server-free file watching is tested; block compilation and
+interactive terminal rendering are not covered by the fixture tests.
+
 Use `npm run release:patch`, `npm run release:minor`, or `npm run release:major`.
 All tests must pass before the release script changes the version, commits, tags,
 or pushes. Tagged CI releases also require the full test suite to pass before
