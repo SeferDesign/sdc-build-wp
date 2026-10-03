@@ -10,6 +10,7 @@ import BaseComponent from '../lib/components/base.js';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { validateCreation, getCreationDestination } from '../lib/creation.js';
 
 const settle = () => new Promise(resolve => setTimeout(resolve, 80));
 
@@ -204,9 +205,7 @@ test('Tab selects panels, filters component logs, and modal prompts trap and res
 	stdin.write('\r');
 	await settle();
 	assert.equal(await prompt, 'hello');
-	assert.equal(getFocus(), 'logs');
-	stdin.write('\x1b[Z');
-	await settle();
+	assert.equal(getFocus(), 'filter');
 	stdin.write('\x1b');
 	await settle();
 	assert.equal(dashboard.selectedComponent, null);
@@ -268,7 +267,7 @@ test('f toggles Filter without dispatching a command or interfering with name in
 	stdin.write('\r');
 	await settle();
 	assert.equal(await prompt, 'f');
-	assert.equal(getFocus(), 'logs');
+	assert.equal(getFocus(), 'filter');
 });
 
 test('component selector keeps selection visible in short and narrow terminals', async t => {
@@ -305,7 +304,7 @@ test('component logger tags multiline diagnostics without changing their text', 
 	]);
 });
 
-test('creation form manages fields, validates names, pastes safely, and restores log focus', async t => {
+test('creation form manages fields, validates names, pastes safely, and restores previous focus', async t => {
 	const { stdin, dashboard, getFocus, getOutput } = await createTerminal(t);
 	stdin.write('f');
 	await settle();
@@ -340,13 +339,13 @@ test('creation form manages fields, validates names, pastes safely, and restores
 	stdin.write('\r');
 	await settle();
 	assert.deepEqual(await creation, { type: 'Pattern', name: 'My Pattern' });
-	assert.equal(getFocus(), 'logs');
+	assert.equal(getFocus(), 'filter');
 	const cancelled = dashboard.showCreation();
 	await settle();
 	stdin.write('\x1b');
 	await settle();
 	assert.equal(await cancelled, null);
-	assert.equal(getFocus(), 'logs');
+	assert.equal(getFocus(), 'filter');
 });
 
 test('New command preserves scaffolding and watcher registration for all creation types', async t => {
@@ -390,6 +389,53 @@ test('New command preserves scaffolding and watcher registration for all creatio
 	assert.equal(style.slug, 'test-name');
 	assert.deepEqual(blocks, [path.join(directory, 'blocks/test-name')]);
 	assert.deepEqual(patterns, [path.join(directory, 'patterns/test-name.php')]);
+});
+
+test('creation validation rejects existing destinations for every type', async t => {
+	const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-validation-test-'));
+	t.after(() => fs.rm(directory, { recursive: true, force: true }));
+	for (const type of ['Block', 'Pattern', 'Style variation']) {
+		await validateCreation(directory, type, 'Test Name');
+		const destination = path.join(directory, getCreationDestination(type, 'Test Name'));
+		await fs.mkdir(path.dirname(destination), { recursive: true });
+		if (type === 'Block') { await fs.mkdir(destination); }
+		else { await fs.writeFile(destination, 'existing content'); }
+		await assert.rejects(validateCreation(directory, type, 'Test Name'), /already exists/);
+	}
+	await assert.rejects(validateCreation(directory, 'Pattern', '!!!'), /letters or numbers/);
+	await fs.writeFile(path.join(directory, 'styles', 'blocked'), 'not a directory');
+	await assert.rejects(validateCreation(path.join(directory, 'styles', 'blocked'), 'Pattern', 'Test'), /Cannot check/);
+});
+
+test('duplicate creation keeps the name editable and previews the corrected destination', async t => {
+	const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-form-validation-'));
+	const originalPath = project.path;
+	project.path = directory;
+	t.after(async () => {
+		project.path = originalPath;
+		await fs.rm(directory, { recursive: true, force: true });
+	});
+	await fs.mkdir(path.join(directory, 'blocks', 'existing'), { recursive: true });
+	const { dashboard, stdin, getFocus, getOutput } = await createTerminal(t);
+	const creation = dashboard.showCreation();
+	await settle();
+	stdin.write('\t');
+	await settle();
+	stdin.write('\x1b[200~Existing\x1b[201~');
+	await settle();
+	stdin.write('\r');
+	await settle();
+	assert.equal(dashboard.hasPrompt(), true);
+	assert.equal(getFocus(), 'creation-name');
+	assert.match(getOutput(), /blocks\/existing already exists/);
+	stdin.write('\x1b[200~ New\x1b[201~');
+	await settle();
+	assert.match(getOutput(), /Slug: existing-new/);
+	assert.match(getOutput(), /Destination: blocks\/existing-new/);
+	stdin.write('\r');
+	await settle();
+	assert.deepEqual(await creation, { type: 'Block', name: 'Existing New' });
+	assert.equal(getFocus(), 'logs');
 });
 
 test('queued renders are safe after destruction and plain-output init stays inactive', async () => {
