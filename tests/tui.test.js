@@ -10,6 +10,7 @@ import BaseComponent from '../lib/components/base.js';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { stripVTControlCharacters } from 'node:util';
 import { validateCreation, getCreationDestination } from '../lib/creation.js';
 
 const settle = () => new Promise(resolve => setTimeout(resolve, 80));
@@ -38,8 +39,9 @@ async function createTerminal(t) {
 	dashboard.app = render(React.createElement(TerminalRoot), {
 		stdin,
 		stdout,
+		stderr: stdout,
 		exitOnCtrlC: false,
-		patchConsole: false,
+		patchConsole: true,
 		alternateScreen: true,
 		incrementalRendering: true,
 		kittyKeyboard: { mode: 'disabled' }
@@ -232,6 +234,57 @@ test('component filtering uses source metadata, bounds scrolling, and preserves 
 	dashboard.setComponents(['scripts']);
 	assert.equal(dashboard.selectedComponent, null);
 	assert.throws(() => dashboard.selectComponent('unknown'), /Unknown log component/);
+});
+
+test('multiline diagnostics use physical rows, preserve history and styles, and strip terminal controls', () => {
+	const dashboard = new TUI();
+	dashboard.isInitialized = true;
+	dashboard.setComponents(['php', 'scripts']);
+	const diagnostic = '\x1b[31mPHP Fatal error:\r\n\tStack trace:\r#0 first()\n#1 second()\x1b[0m\n';
+	dashboard.log(diagnostic, 'php');
+	dashboard.log('scripts complete', 'scripts');
+	dashboard.selectComponent('php');
+	assert.deepEqual(dashboard.getVisibleLogLines(2).map(stripVTControlCharacters), ['#0 first()', '#1 second()']);
+	dashboard.scrollLogs(2);
+	assert.deepEqual(dashboard.getVisibleLogLines(2), [
+		'\x1b[31mPHP Fatal error:\x1b[0m',
+		'\x1b[31m    Stack trace:\x1b[0m'
+	]);
+	dashboard.setSearchQuery('FIRST()');
+	assert.deepEqual(dashboard.getVisibleLogLines(2).map(stripVTControlCharacters), ['#0 first()']);
+	assert.equal(dashboard.getLogHistory(), diagnostic + '\nscripts complete');
+	dashboard.log('before\x1b[2J\x1b[Hafter\x1b]0;title\x07\x08\x00', 'php');
+	dashboard.setSearchQuery('');
+	assert.equal(dashboard.getVisibleLogLines(1)[0], 'beforeafter');
+});
+
+test('bursts of multiline errors stay within the log viewport and console output uses Ink redraws', async t => {
+	const originalWarn = console.warn;
+	const { dashboard, getOutput } = await createTerminal(t);
+	const rowCounts = [];
+	const getLines = dashboard.getVisibleLogLines.bind(dashboard);
+	t.mock.method(dashboard, 'getVisibleLogLines', rows => {
+		const lines = getLines(rows);
+		assert.ok(lines.length <= rows);
+		assert.ok(lines.every(line => !/[\r\n\t]/.test(line)));
+		rowCounts.push(rows);
+		return lines;
+	});
+	for (let index = 0; index < 30; index++) {
+		dashboard.log(`PHP warning ${index}\r\n\tcontext ${index}\ntrace ${index}\n`, 'scripts');
+	}
+	await settle();
+	assert.ok(rowCounts.at(-1) > 0);
+	assert.equal(dashboard.getFilteredLogHistory().length, 90);
+	assert.equal(dashboard.getVisibleLogLines(1)[0], 'trace 29');
+	const start = getOutput().length;
+	console.warn('external diagnostic');
+	await settle();
+	const consoleOutput = getOutput().slice(start);
+	assert.match(consoleOutput, /external diagnostic/);
+	assert.match(consoleOutput, /SDC Build WP/);
+	await dashboard.destroy();
+	assert.equal(console.warn, originalWarn, 'Ink restores the console on teardown');
 });
 
 test('search matches literal visible text, combines component filters, and includes new logs', () => {
