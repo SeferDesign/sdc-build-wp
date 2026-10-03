@@ -7,6 +7,9 @@ import project, { keypressListen } from '../lib/project.js';
 import { TUI, TUIRoot } from '../lib/tui.js';
 import tui from '../lib/tui.js';
 import BaseComponent from '../lib/components/base.js';
+import { promises as fs } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 const settle = () => new Promise(resolve => setTimeout(resolve, 80));
 
@@ -300,6 +303,93 @@ test('component logger tags multiline diagnostics without changing their text', 
 		{ message: 'first line', component: 'scripts' },
 		{ message: 'second line', component: 'scripts' }
 	]);
+});
+
+test('creation form manages fields, validates names, pastes safely, and restores log focus', async t => {
+	const { stdin, dashboard, getFocus, getOutput } = await createTerminal(t);
+	stdin.write('f');
+	await settle();
+	const creation = dashboard.showCreation();
+	await settle();
+	assert.equal(getFocus(), 'creation-type');
+	stdin.write('\x1b[B');
+	await settle();
+	stdin.write('\t');
+	await settle();
+	assert.equal(getFocus(), 'creation-name');
+	stdin.write('\r');
+	await settle();
+	assert.match(getOutput(), /Enter a name containing letters or numbers/);
+	assert.equal(dashboard.hasPrompt(), true);
+	stdin.write('\x1b[200~My\r\nPattern\x1b[201~');
+	await settle();
+	stdin.write('\t');
+	await settle();
+	assert.equal(getFocus(), 'creation-submit');
+	stdin.write('\t');
+	await settle();
+	assert.equal(getFocus(), 'creation-cancel');
+	stdin.write('\t');
+	await settle();
+	assert.equal(getFocus(), 'creation-type');
+	stdin.write('\x1b[Z');
+	await settle();
+	assert.equal(getFocus(), 'creation-cancel');
+	stdin.write('\x1b[Z');
+	await settle();
+	stdin.write('\r');
+	await settle();
+	assert.deepEqual(await creation, { type: 'Pattern', name: 'My Pattern' });
+	assert.equal(getFocus(), 'logs');
+	const cancelled = dashboard.showCreation();
+	await settle();
+	stdin.write('\x1b');
+	await settle();
+	assert.equal(await cancelled, null);
+	assert.equal(getFocus(), 'logs');
+});
+
+test('New command preserves scaffolding and watcher registration for all creation types', async t => {
+	const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-creation-test-'));
+	const originalPath = project.path;
+	const originalComponents = project.components;
+	const originalRunning = project.isRunning;
+	const originalHandler = tui.commandHandler;
+	const stdin = process.stdin;
+	const descriptor = Object.getOwnPropertyDescriptor(stdin, 'isTTY');
+	Object.defineProperty(stdin, 'isTTY', { value: true, configurable: true });
+	t.after(async () => {
+		project.path = originalPath;
+		project.components = originalComponents;
+		project.isRunning = originalRunning;
+		tui.commandHandler = originalHandler;
+		if (descriptor) { Object.defineProperty(stdin, 'isTTY', descriptor); }
+		else { delete stdin.isTTY; }
+		await fs.rm(directory, { recursive: true, force: true });
+	});
+	project.path = directory;
+	project.isRunning = true;
+	const blocks = [];
+	const patterns = [];
+	project.components = {
+		blocks: { addBlock: file => blocks.push(file) },
+		php: { watcher: { add: file => patterns.push(file) } }
+	};
+	keypressListen();
+	for (const type of ['Block', 'Pattern', 'Style variation']) {
+		t.mock.method(tui, 'showCreation', async () => ({ type, name: 'Test Name' }));
+		await tui.commandHandler('n', {});
+	}
+	const block = JSON.parse(await fs.readFile(path.join(directory, 'blocks/test-name/src/block.json'), 'utf8'));
+	assert.equal(block.title, 'Test Name');
+	assert.equal(block.name, 'custom/test-name');
+	assert.ok(await fs.readFile(path.join(directory, 'blocks/test-name/src/index.js'), 'utf8'));
+	assert.match(await fs.readFile(path.join(directory, 'patterns/test-name.php'), 'utf8'), /Title: Test Name/);
+	const style = JSON.parse(await fs.readFile(path.join(directory, 'styles/test-name.json'), 'utf8'));
+	assert.equal(style.title, 'Test Name');
+	assert.equal(style.slug, 'test-name');
+	assert.deepEqual(blocks, [path.join(directory, 'blocks/test-name')]);
+	assert.deepEqual(patterns, [path.join(directory, 'patterns/test-name.php')]);
 });
 
 test('queued renders are safe after destruction and plain-output init stays inactive', async () => {
