@@ -145,6 +145,21 @@ test('mouse reports stay out of prompts and scroll through Ink input', async t =
 	assert.equal(await prompt, null);
 });
 
+test('loading animation advances and stops when initial loading finishes', async t => {
+	const { dashboard, getOutput } = await createTerminal(t);
+	dashboard._isInitialLoading = true;
+	dashboard.render();
+	await new Promise(resolve => setTimeout(resolve, 350));
+	const frames = getOutput().match(/[⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]/g) || [];
+	assert.ok(new Set(frames).size >= 2, 'spinner should display multiple animation frames');
+	assert.match(getOutput(), /Initial loading/);
+	dashboard.finishInitialLoading();
+	await settle();
+	const stoppedOutput = getOutput();
+	await new Promise(resolve => setTimeout(resolve, 200));
+	assert.equal(getOutput(), stoppedOutput, 'finished spinner should not schedule more output');
+});
+
 test('queued renders are safe after destruction and plain-output init stays inactive', async () => {
 	const dashboard = new TUI();
 	if (!process.stdin.isTTY || !process.stdout.isTTY) {
