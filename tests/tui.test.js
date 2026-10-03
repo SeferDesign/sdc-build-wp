@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { PassThrough } from 'node:stream';
 import React from 'react';
-import { render } from 'ink';
+import { render, useFocusManager } from 'ink';
 import project, { keypressListen } from '../lib/project.js';
 import { TUI, TUIRoot } from '../lib/tui.js';
 import tui from '../lib/tui.js';
+import BaseComponent from '../lib/components/base.js';
 
 const settle = () => new Promise(resolve => setTimeout(resolve, 80));
 
@@ -25,7 +26,12 @@ async function createTerminal(t) {
 	dashboard.isInitialized = true;
 	dashboard.setCommands('r restart, p pause, n new, q quit');
 	dashboard.setComponents(['scripts', 'style']);
-	dashboard.app = render(React.createElement(TUIRoot, { tui: dashboard }), {
+	let activeId;
+	function TerminalRoot() {
+		activeId = useFocusManager().activeId;
+		return React.createElement(TUIRoot, { tui: dashboard });
+	}
+	dashboard.app = render(React.createElement(TerminalRoot), {
 		stdin,
 		stdout,
 		exitOnCtrlC: false,
@@ -34,13 +40,15 @@ async function createTerminal(t) {
 		incrementalRendering: true,
 		kittyKeyboard: { mode: 'disabled' }
 	});
+	const rerender = dashboard.app.rerender;
+	dashboard.app.rerender = () => rerender(React.createElement(TerminalRoot));
 	t.after(async () => {
 		await dashboard.destroy();
 		stdin.destroy();
 		stdout.destroy();
 	});
 	await settle();
-	return { stdin, stdout, dashboard, getOutput: () => output };
+	return { stdin, stdout, dashboard, getOutput: () => output, getFocus: () => activeId };
 }
 
 test('Ink separates pasted names from commands and supports Backspace, Delete, and Escape', async t => {
@@ -158,6 +166,140 @@ test('loading animation advances and stops when initial loading finishes', async
 	const stoppedOutput = getOutput();
 	await new Promise(resolve => setTimeout(resolve, 200));
 	assert.equal(getOutput(), stoppedOutput, 'finished spinner should not schedule more output');
+});
+
+test('Tab selects panels, filters component logs, and modal prompts trap and restore focus', async t => {
+	const { stdin, dashboard, getOutput, getFocus } = await createTerminal(t);
+	dashboard.log('global message');
+	dashboard.log('script message', 'scripts');
+	dashboard.log('style message', 'style');
+	await settle();
+	assert.equal(getFocus(), 'logs');
+	assert.doesNotMatch(getOutput(), /Focus:/);
+	assert.doesNotMatch(getOutput(), /Logs:/);
+	stdin.write('f');
+	await settle();
+	stdin.write('\x1b[Z');
+	await settle();
+	stdin.write('\t');
+	await settle();
+	assert.equal(getFocus(), 'filter');
+	stdin.write('\x1b[B');
+	await settle();
+	assert.equal(dashboard.selectedComponent, 'scripts');
+	assert.deepEqual(dashboard.getVisibleLogLines(10), ['script message']);
+	const prompt = dashboard.showInput('Name:');
+	await settle();
+	assert.equal(getFocus(), 'prompt');
+	stdin.write('\t');
+	stdin.write('\x1b[B');
+	await settle();
+	assert.equal(dashboard.selectedComponent, 'scripts');
+	stdin.write('\x1b[200~hello\x1b[201~');
+	await settle();
+	assert.equal(dashboard._activePrompt.value, 'hello');
+	stdin.write('\r');
+	await settle();
+	assert.equal(await prompt, 'hello');
+	assert.equal(getFocus(), 'logs');
+	stdin.write('\x1b[Z');
+	await settle();
+	stdin.write('\x1b');
+	await settle();
+	assert.equal(dashboard.selectedComponent, null);
+	assert.equal(dashboard.getLogHistory(), 'global message\nscript message\nstyle message');
+});
+
+test('component filtering uses source metadata, bounds scrolling, and preserves complete history', () => {
+	const dashboard = new TUI();
+	dashboard.isInitialized = true;
+	dashboard.setComponents(['scripts', 'style']);
+	for (let index = 0; index < 20; index++) {
+		dashboard.log(`message ${index}`, index % 2 ? 'scripts' : 'style');
+	}
+	dashboard.selectComponent('scripts');
+	dashboard.scrollLogs(100);
+	assert.deepEqual(dashboard.getVisibleLogLines(2), ['message 1', 'message 3']);
+	dashboard.selectComponent('style');
+	assert.equal(dashboard._logScrollOffset, 0);
+	assert.deepEqual(dashboard.getVisibleLogLines(2), ['message 16', 'message 18']);
+	assert.equal(dashboard.getLogHistory().split('\n').length, 20);
+	const restored = new TUI();
+	restored.setState(dashboard.getState());
+	assert.equal(restored.selectedComponent, 'style');
+	dashboard.setComponents(['scripts']);
+	assert.equal(dashboard.selectedComponent, null);
+	assert.throws(() => dashboard.selectComponent('unknown'), /Unknown log component/);
+});
+
+test('f toggles Filter without dispatching a command or interfering with name input', async t => {
+	const { stdin, dashboard, getOutput, getFocus } = await createTerminal(t);
+	const commands = [];
+	dashboard.commandHandler = input => commands.push(input);
+	assert.doesNotMatch(getOutput(), /Filter/);
+	stdin.write('\t');
+	await settle();
+	assert.equal(getFocus(), 'logs');
+	stdin.write('f');
+	await settle();
+	assert.equal(getFocus(), 'filter');
+	assert.deepEqual(commands, []);
+	stdin.write('\x1b[B');
+	await settle();
+	assert.equal(dashboard.selectedComponent, 'scripts');
+	stdin.write('f');
+	await settle();
+	assert.equal(getFocus(), 'logs');
+	assert.equal(dashboard.selectedComponent, 'scripts');
+	stdin.write('\t');
+	await settle();
+	assert.equal(getFocus(), 'logs');
+	stdin.write('f');
+	await settle();
+	assert.equal(getFocus(), 'filter');
+	const prompt = dashboard.showInput('Name:');
+	await settle();
+	stdin.write('f');
+	await settle();
+	assert.equal(dashboard._activePrompt.value, 'f');
+	stdin.write('\r');
+	await settle();
+	assert.equal(await prompt, 'f');
+	assert.equal(getFocus(), 'logs');
+});
+
+test('component selector keeps selection visible in short and narrow terminals', async t => {
+	const { dashboard, stdin, stdout, getOutput } = await createTerminal(t);
+	stdin.write('f');
+	await settle();
+	dashboard.setComponents(Array.from({ length: 20 }, (_, index) => `component-${index}`));
+	dashboard.selectComponent('component-19');
+	stdout.rows = 16;
+	stdout.emit('resize');
+	await settle();
+	assert.match(getOutput().slice(-3000), /> component-19/);
+	stdout.columns = 40;
+	stdout.rows = 24;
+	stdout.emit('resize');
+	await settle();
+	assert.match(getOutput().slice(-3000), /< component-19 >/);
+	stdin.write('\x1b[B');
+	await settle();
+	assert.equal(dashboard.selectedComponent, null);
+});
+
+test('component logger tags multiline diagnostics without changing their text', t => {
+	const originalInitialized = tui.isInitialized;
+	tui.isInitialized = true;
+	t.after(() => { tui.isInitialized = originalInitialized; });
+	const calls = [];
+	t.mock.method(tui, 'log', (message, component) => calls.push({ message, component }));
+	class ScriptsComponent extends BaseComponent {}
+	new ScriptsComponent().log(null, 'first line\nsecond line');
+	assert.deepEqual(calls, [
+		{ message: 'first line', component: 'scripts' },
+		{ message: 'second line', component: 'scripts' }
+	]);
 });
 
 test('queued renders are safe after destruction and plain-output init stays inactive', async () => {
