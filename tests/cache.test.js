@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import '../lib/project.js';
+import project from '../lib/project.js';
 import CacheComponent from '../lib/components/cache.js';
 
 async function createCache(t) {
@@ -73,4 +73,86 @@ test('cache coalesces watch updates and retains dirty state on write failure', a
 	failingWrite.mock.restore();
 	await cache.flushManifest();
 	assert.equal(cache.manifestDirty, false);
+});
+
+test('dependency hashing is parallel, bounded, and deduplicated', async t => {
+	const cache = await createCache(t);
+	const originalConfig = project.config;
+	project.config = { buildConcurrency: { cache: 3 } };
+	t.after(() => { project.config = originalConfig; });
+	let active = 0;
+	let maximum = 0;
+	let reads = 0;
+	t.mock.method(cache, 'readFileHash', async file => {
+		active++;
+		reads++;
+		maximum = Math.max(maximum, active);
+		await new Promise(resolve => setTimeout(resolve, 5));
+		active--;
+		return `hash:${file}`;
+	});
+	const files = Array.from({ length: 10 }, (_, index) => `file-${index}`);
+	const hashes = await cache.getFileHashes([...files, ...files]);
+	assert.equal(maximum, 3);
+	assert.equal(reads, 10);
+	assert.equal(Object.keys(hashes).length, 10);
+	await Promise.all([cache.getFileHash('shared'), cache.getFileHash('shared')]);
+	assert.equal(reads, 11);
+});
+
+test('invalidating a pending hash prevents stale reads from repopulating the cache', async t => {
+	const cache = await createCache(t);
+	let release;
+	const gate = new Promise(resolve => { release = resolve; });
+	let reads = 0;
+	t.mock.method(cache, 'readFileHash', async () => {
+		reads++;
+		if (reads === 1) {
+			await gate;
+			return 'old';
+		}
+		return 'new';
+	});
+	const pending = cache.getFileHash('entry');
+	cache.clearHashCache('entry');
+	assert.equal(await cache.getFileHash('entry'), 'new');
+	release();
+	assert.equal(await pending, 'old');
+	assert.equal(await cache.getFileHash('entry'), 'new');
+	assert.equal(reads, 2);
+});
+
+test('parallel cache checks detect changed, added, removed, and missing dependencies', async t => {
+	const cache = await createCache(t);
+	const input = path.join(cache.cacheDir, 'input.js');
+	const output = path.join(cache.cacheDir, 'output.js');
+	const dependency = path.join(cache.cacheDir, 'dependency.js');
+	await Promise.all([
+		fs.writeFile(input, 'input'),
+		fs.writeFile(output, 'output'),
+		fs.writeFile(dependency, 'original')
+	]);
+	await cache.updateCache(input, output, [dependency, dependency]);
+	assert.equal(await cache.needsRebuild(input, output, [dependency]), false);
+	assert.equal(await cache.needsRebuild(input, output, []), true);
+	assert.equal(await cache.needsRebuild(input, output, [dependency, input]), true);
+	await fs.writeFile(dependency, 'changed');
+	cache.clearHashCache(dependency);
+	assert.equal(await cache.needsRebuild(input, output, [dependency]), true);
+	await cache.updateCache(input, output, [dependency]);
+	await fs.rm(dependency);
+	await cache.invalidateFile(dependency);
+	assert.equal(await cache.needsRebuild(input, output, [dependency]), true);
+});
+
+test('unexpected file read errors propagate instead of becoming cache hits', async t => {
+	const cache = await createCache(t);
+	t.mock.method(fs, 'readFile', async () => {
+		const error = new Error('permission denied');
+		error.code = 'EACCES';
+		throw error;
+	});
+	await assert.rejects(cache.getFileHash('unreadable'), /permission denied/);
+	assert.equal(cache.hashRequests.size, 0);
+	assert.equal(cache.hashCache.size, 0);
 });

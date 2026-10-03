@@ -16,6 +16,8 @@ Cache manifest updates are batched during the initial build and coalesced over 1
 
 Script dependency graphs are refreshed after lint fixes, once per processed entry, and reused for cache checks. Watch rebuilds refresh only affected entries when the changed file is already in the graph.
 
+Dependency hashes are read concurrently, with duplicate in-flight reads shared across entries. `buildConcurrency.cache` controls the number of concurrent dependency checks per entry (default: 8). These lightweight reads do not consume compilation slots.
+
 ```sh
 sdc-build-wp --no-cache        # Disable caching for this build
 sdc-build-wp --clear-cache     # Clear all cached data
@@ -35,7 +37,8 @@ Optional concurrency caps can be set in `.sdc-build-wp/config.json` to keep expe
 		"style": 10,
 		"scripts": 10,
 		"blocks": 10,
-		"images": 10
+		"images": 10,
+		"cache": 8
 	}
 }
 ```
