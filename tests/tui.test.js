@@ -42,6 +42,7 @@ async function createTerminal(t) {
 		stderr: stdout,
 		exitOnCtrlC: false,
 		patchConsole: true,
+		interactive: true,
 		alternateScreen: true,
 		incrementalRendering: true,
 		kittyKeyboard: { mode: 'disabled' }
