@@ -35,6 +35,17 @@ test('cache batches updates into one atomic manifest write', async t => {
 	assert.deepEqual(await fs.readdir(cache.cacheDir), ['manifest.json']);
 });
 
+test('beginning a batch defers an already scheduled watch flush', async t => {
+	const cache = await createCache(t);
+	const write = t.mock.method(fs, 'writeFile');
+	await cache.saveManifest();
+	cache.beginBatch();
+	await new Promise(resolve => setTimeout(resolve, 150));
+	assert.equal(write.mock.callCount(), 0);
+	await cache.endBatch();
+	assert.equal(write.mock.callCount(), 1);
+});
+
 test('cache preserves updates made while a flush is in flight', async t => {
 	const cache = await createCache(t);
 	const originalWrite = fs.writeFile;
@@ -155,4 +166,13 @@ test('unexpected file read errors propagate instead of becoming cache hits', asy
 	await assert.rejects(cache.getFileHash('unreadable'), /permission denied/);
 	assert.equal(cache.hashRequests.size, 0);
 	assert.equal(cache.hashCache.size, 0);
+});
+
+test('missing files are rechecked if they appear without an invalidation event', async t => {
+	const cache = await createCache(t);
+	const file = path.join(cache.cacheDir, 'new.js');
+	assert.equal(await cache.getFileHash(file), null);
+	assert.equal(cache.hashCache.has(file), false);
+	await fs.writeFile(file, 'new content');
+	assert.notEqual(await cache.getFileHash(file), null);
 });
