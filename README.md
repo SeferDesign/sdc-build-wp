@@ -68,3 +68,10 @@ node ~/sites/sdc/sdc-build-wp/index.js --watch
 # or
 sdc-build-wp-local --watch
 ```
+
+## Release
+
+Use `npm run release:patch`, `npm run release:minor`, or `npm run release:major`.
+All tests must pass before the release script changes the version, commits, tags,
+or pushes. Tagged CI releases also require the full test suite to pass before
+creating the GitHub release or publishing to npm.
