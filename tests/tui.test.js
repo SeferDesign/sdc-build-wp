@@ -234,6 +234,86 @@ test('component filtering uses source metadata, bounds scrolling, and preserves 
 	assert.throws(() => dashboard.selectComponent('unknown'), /Unknown log component/);
 });
 
+test('search matches literal visible text, combines component filters, and includes new logs', () => {
+	const dashboard = new TUI();
+	dashboard.isInitialized = true;
+	dashboard.setComponents(['scripts', 'style']);
+	dashboard.log('\x1b[31mBuild ERROR [x]\x1b[0m', 'scripts');
+	dashboard.log('error in stylesheet', 'style');
+	dashboard.log('everything fine', 'scripts');
+	dashboard.setSearchQuery('ERROR');
+	assert.equal(dashboard.getFilteredLogHistory().length, 2);
+	dashboard.selectComponent('scripts');
+	assert.deepEqual(dashboard.getVisibleLogLines(10), ['\x1b[31mBuild ERROR [x]\x1b[0m']);
+	dashboard.log('another error', 'scripts');
+	assert.equal(dashboard.getFilteredLogHistory().length, 2);
+	dashboard.setSearchQuery('[x]');
+	assert.equal(dashboard.getFilteredLogHistory().length, 1);
+	dashboard.setSearchQuery('31m');
+	assert.deepEqual(dashboard.getVisibleLogLines(10), ['No matching logs.']);
+	const restored = new TUI();
+	restored.setState(dashboard.getState());
+	assert.equal(restored.searchQuery, '31m');
+	assert.equal(dashboard.getLogHistory().split('\n').length, 4);
+});
+
+test('/ opens live search, Enter keeps it, Escape restores query and scroll, and empty input clears', async t => {
+	const { dashboard, stdin, getFocus } = await createTerminal(t);
+	const commands = [];
+	dashboard.commandHandler = input => commands.push(input);
+	for (let index = 0; index < 40; index++) {
+		dashboard.log(`Error item ${index}`, 'scripts');
+	}
+	dashboard.log('all clear', 'style');
+	stdin.write('f');
+	await settle();
+	stdin.write('/');
+	await settle();
+	assert.equal(getFocus(), 'prompt');
+	assert.equal(dashboard._activePrompt.type, 'search');
+	stdin.write('\x1b[200~ERROR\x1b[201~');
+	await settle();
+	assert.equal(dashboard.searchQuery, 'ERROR');
+	assert.equal(dashboard.getFilteredLogHistory().length, 40);
+	stdin.write('\r');
+	await settle();
+	assert.equal(getFocus(), 'logs');
+	assert.equal(dashboard.hasPrompt(), false);
+	dashboard.scrollLogs(3);
+	await settle();
+	const previousOffset = dashboard._logScrollOffset;
+	stdin.write('/');
+	await settle();
+	stdin.write('q');
+	await settle();
+	assert.equal(dashboard.searchQuery, 'ERRORq');
+	assert.deepEqual(dashboard.getVisibleLogLines(10), ['No matching logs.']);
+	stdin.write('\x1b');
+	await settle();
+	assert.equal(dashboard.searchQuery, 'ERROR');
+	assert.equal(dashboard._logScrollOffset, previousOffset);
+	assert.equal(getFocus(), 'logs');
+	stdin.write('/');
+	await settle();
+	for (let index = 0; index < 5; index++) {
+		stdin.write('\x7f');
+		await settle();
+	}
+	stdin.write('\r');
+	await settle();
+	assert.equal(dashboard.searchQuery, '');
+	assert.equal(dashboard.getFilteredLogHistory().length, 41);
+	assert.deepEqual(commands, []);
+	const creation = dashboard.showInput('Name:');
+	await settle();
+	stdin.write('/');
+	await settle();
+	assert.equal(dashboard._activePrompt.value, '/');
+	stdin.write('\x1b');
+	await settle();
+	assert.equal(await creation, null);
+});
+
 test('f toggles Filter without dispatching a command or interfering with name input', async t => {
 	const { stdin, dashboard, getOutput, getFocus } = await createTerminal(t);
 	const commands = [];
