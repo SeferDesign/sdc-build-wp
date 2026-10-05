@@ -12,10 +12,14 @@ const execFileAsync = promisify(execFile);
 const cli = fileURLToPath(new URL('../index.js', import.meta.url));
 const fixture = fileURLToPath(new URL('./fixtures/theme/', import.meta.url));
 
-test('watch mode rebuilds fixture scripts without the server component', { timeout: 30000 }, async t => {
+test('watch mode discovers entries and dependencies and rebuilds without the server component', { timeout: 30000 }, async t => {
 	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-watch-'));
 	await fs.cp(fixture, root, { recursive: true });
-	const child = spawn(process.execPath, [cli, '--builds=scripts', '--watch', '--no-cache'], {
+	const configPath = path.join(root, '.sdc-build-wp/config.json');
+	const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
+	delete config.entries;
+	await fs.writeFile(configPath, JSON.stringify(config));
+	const child = spawn(process.execPath, [cli, '--builds=style,scripts', '--watch', '--no-cache'], {
 		cwd: root,
 		stdio: ['pipe', 'pipe', 'pipe'],
 		env: { ...process.env, NO_COLOR: '1', FORCE_COLOR: '0' }
@@ -36,14 +40,14 @@ test('watch mode rebuilds fixture scripts without the server component', { timeo
 	});
 	const waitFor = async predicate => {
 		const deadline = Date.now() + 15000;
-		while (!predicate()) {
+		while (!(await predicate())) {
 			assert.equal(child.exitCode, null, output);
 			assert.equal(child.signalCode, null, output);
 			assert.ok(Date.now() < deadline, output);
 			await new Promise(resolve => setTimeout(resolve, 25));
 		}
 	};
-	await waitFor(() => output.includes('Started watching [scripts]'));
+	await waitFor(() => output.includes('Started watching [style, scripts]'));
 	// Chokidar's initial scan must finish before changing a dependency.
 	await new Promise(resolve => setTimeout(resolve, 300));
 	const beforeChange = output.length;
@@ -51,6 +55,30 @@ test('watch mode rebuilds fixture scripts without the server component', { timeo
 	await waitFor(() => output.slice(beforeChange).includes('Built /dist/scripts/main.min.js'));
 	const bundle = await fs.readFile(path.join(root, 'dist/scripts/main.min.js'), 'utf8');
 	assert.equal(runInNewContext(`${bundle}; sdcBuild.getMessage()`), 'watch-updated');
+	const contains = async (file, text) => {
+		try {
+			return (await fs.readFile(path.join(root, file), 'utf8')).includes(text);
+		} catch (error) {
+			if (error.code === 'ENOENT') { return false; }
+			throw error;
+		}
+	};
+	await fs.writeFile(path.join(root, '_src/scripts/extra.js'), 'export const extra = \'watch-extra\';\n');
+	await fs.writeFile(path.join(root, '_src/style/extra.scss'), '.watch-extra { color: #abcdef; }\n');
+	await waitFor(() => contains('dist/scripts/extra.min.js', 'watch-extra'));
+	await waitFor(() => contains('dist/style/extra.min.css', '.watch-extra{color:#abcdef}'));
+
+	await fs.mkdir(path.join(root, '_src/scripts/nested'));
+	const dependency = path.join(root, '_src/scripts/nested/new.js');
+	await fs.writeFile(dependency, 'export const message = \'new-dependency\';\n');
+	await fs.writeFile(path.join(root, '_src/scripts/main.js'),
+		'import { message } from \'./nested/new.js\';\nexport function getMessage() { return message; }\n');
+	await waitFor(() => contains('dist/scripts/main.min.js', 'new-dependency'));
+	await fs.writeFile(dependency, 'export const message = \'dependency-updated\';\n');
+	await waitFor(() => contains('dist/scripts/main.min.js', 'dependency-updated'));
+	const updatedBundle = await fs.readFile(path.join(root, 'dist/scripts/main.min.js'), 'utf8');
+	assert.equal(runInNewContext(`${updatedBundle}; sdcBuild.getMessage()`), 'dependency-updated');
+	await assert.rejects(fs.access(path.join(root, 'dist/scripts/nested/new.min.js')), { code: 'ENOENT' });
 	assert.doesNotMatch(output, /Failed|Uncaught|Unhandled|✖/);
 	child.kill('SIGINT');
 	await waitFor(() => child.exitCode !== null);

@@ -45,8 +45,6 @@ Optional concurrency caps can be set in `.sdc-build-wp/config.json` to keep expe
 
 ## Watch
 
-The initial-loading spinner uses Ink's shared animation scheduler and stops when loading finishes.
-
 While watch is enabled, use the following keyboard commands to control the build process:
 
 ```sh

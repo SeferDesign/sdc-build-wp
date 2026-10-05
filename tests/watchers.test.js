@@ -26,14 +26,18 @@ for (const Component of [ImagesComponent, FontsComponent, HTMLComponent, PHPComp
 		const { component, handlers, logs } = watchHarness(Component);
 		const process = t.mock.method(component, 'process', async () => {});
 		const callback = handlers.get('all');
-		await callback('change', '/source/file');
+		const entry = Component === PHPComponent
+			? `${component.project.path}/file.php`
+			: Component === HTMLComponent ? `${component.project.path}/file.html`
+				: Component === FontsComponent ? `${component.project.path}/_src/fonts/file.woff2` : '/source/file';
+		await callback('change', entry);
 		assert.equal(process.mock.calls.length, 0);
 		component.project.isRunning = true;
-		await callback('change', '/source/file');
+		await callback('change', entry);
 		assert.equal(process.mock.calls.length, 1);
 		if (Component !== FontsComponent) {
 			const remove = Component === ImagesComponent ? t.mock.method(component, 'remove', async () => {}) : null;
-			await callback('unlink', '/source/file');
+			await callback('unlink', entry);
 			assert.equal(process.mock.calls.length, 1);
 			if (remove) { assert.equal(remove.mock.calls.length, 1); }
 		}
@@ -42,7 +46,7 @@ for (const Component of [ImagesComponent, FontsComponent, HTMLComponent, PHPComp
 			assert.equal(process.mock.calls.length, 1);
 		}
 		t.mock.method(component, 'process', async () => { throw new Error('watch failure'); });
-		await callback('change', '/source/file');
+		await callback('change', entry);
 		assert.ok(logs.some(log => log.type === 'error' && /watch failure/.test(log.message)));
 	});
 }
@@ -50,31 +54,38 @@ for (const Component of [ImagesComponent, FontsComponent, HTMLComponent, PHPComp
 test('style watcher routes theme, dependency, deletion and untracked changes', async t => {
 	const { component, handlers, logs } = watchHarness(StyleComponent);
 	component.project.isRunning = true;
-	component.files = [{ file: 'main.scss' }];
-	component.setDependencyEntry('main.scss', ['tokens.scss']);
+	const sourceRoot = `${component.project.path}/${component.project.paths.src.src}/${component.project.paths.src.style}`;
+	const main = `${sourceRoot}/main.scss`;
+	const tokens = `${sourceRoot}/partials/_tokens.scss`;
+	const untracked = `${sourceRoot}/partials/_untracked.scss`;
+	component.files = [{ file: main }];
+	component.setDependencyEntry(main, [tokens]);
 	const process = t.mock.method(component, 'process', async () => {});
 	const entries = t.mock.method(component, 'processEntries', async () => {});
 	const graph = t.mock.method(component, 'rebuildDependencyGraph', async () => {});
 	const callback = handlers.get('all');
 	await callback('change', component.project.paths.theme.json);
 	assert.deepEqual(process.mock.calls[0].arguments, [null, { buildTheme: true }]);
-	await callback('change', 'tokens.scss');
-	assert.deepEqual(entries.mock.calls[0].arguments, [['main.scss'], { buildTheme: false, lintTargets: ['tokens.scss'] }]);
-	await callback('unlink', 'tokens.scss');
-	await callback('change', 'untracked.scss');
-	assert.equal(process.mock.calls.length, 3);
+	await callback('change', tokens);
+	assert.deepEqual(entries.mock.calls[0].arguments, [[main], { buildTheme: false, lintTargets: [tokens] }]);
+	await callback('unlink', tokens);
+	await callback('change', untracked);
+	assert.equal(process.mock.calls.length, 2);
+	assert.deepEqual(entries.mock.calls[1].arguments, [null, { buildTheme: false, lintTargets: [untracked] }]);
 	assert.equal(graph.mock.calls.length, 3);
-	t.mock.method(component, 'process', async () => { throw new Error('style watcher failed'); });
-	await callback('change', 'untracked.scss');
+	t.mock.method(component, 'processEntries', async () => { throw new Error('style watcher failed'); });
+	await callback('change', untracked);
 	assert.ok(logs.some(log => /style watcher failed/.test(log.message)));
 });
 
 test('cache watcher invalidates changed and deleted files', async t => {
 	const { component, handlers } = watchHarness(CacheComponent);
 	const invalidate = t.mock.method(component, 'invalidateFile', async () => {});
-	await handlers.get('change')('changed.js');
-	await handlers.get('unlink')('deleted.js');
-	assert.deepEqual(invalidate.mock.calls.map(call => call.arguments), [['changed.js'], ['deleted.js']]);
+	const changed = `${component.project.path}/changed.js`;
+	const deleted = `${component.project.path}/deleted.js`;
+	await handlers.get('all')('change', changed);
+	await handlers.get('all')('unlink', deleted);
+	assert.deepEqual(invalidate.mock.calls.map(call => call.arguments), [[changed], [deleted]]);
 });
 
 test('server watcher routes reloads, respects pause and surfaces reload and startup failures', async t => {
