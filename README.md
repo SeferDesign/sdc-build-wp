@@ -45,6 +45,46 @@ Optional concurrency caps can be set in `.sdc-build-wp/config.json` to keep expe
 
 ## Watch
 
+### Storybook (style component)
+
+Storybook is a development-only HTML preview that starts by default whenever
+the style component is included in watch mode. Configure the WordPress source
+page and port in `.sdc-build-wp/config.json` if needed:
+
+```json
+{
+	"storybook": {
+		"sourceURL": "http://my-wordpress-site.local/",
+		"port": 6006
+	}
+}
+```
+
+Run `sdc-build-wp --watch --builds=style` and open `http://127.0.0.1:6006`.
+`sourceURL` defaults to `browsersync.localProxyURL`; it must point to a running
+WordPress frontend page. Storybook does not start during a normal build and
+stops on restart or exit (including when watching is paused).
+To disable Storybook, set `"storybook": { "enabled": false }` in your configuration.
+Without a source URL or a reachable WordPress page, Storybook reports a startup
+error; the style file watcher continues running.
+
+The preview reads the theme's `theme.json` and loads the source page's stylesheet
+links and inline CSS in their original order, including WordPress's generated
+global styles, presets, and block styles. WordPress, not a JavaScript approximation,
+interprets `theme.json` and PHP enqueue logic. Only styles enqueued on that page
+are included; choose a representative page for conditional/block-specific assets.
+Body classes are carried into the preview. Theme scripts are not executed.
+Stylesheet and font URLs still use WordPress, so keep that site running and allow
+cross-origin font requests if needed. Source failures appear in Storybook and
+the build logs rather than falling back to an unstyled preview.
+
+Built-in stories preview colors, typography, and common elements. Add HTML CSF
+stories under `_src/style/**/*.stories.js` or `.stories.ts`. Render functions may
+return an HTML string or a DOM node; the global loader exposes `loaded.themeJSON`.
+Local CSS, JSON, and PHP changes refresh the preview with fresh WordPress styles.
+For WordPress changes outside the theme directory, reload Storybook manually.
+No static Storybook build is generated.
+
 The initial-loading spinner uses Ink's shared animation scheduler and stops when loading finishes.
 
 While watch is enabled, use the following keyboard commands to control the build process:
