@@ -283,7 +283,7 @@ test('bursts of multiline errors stay within the log viewport and console output
 	await settle();
 	const consoleOutput = getOutput().slice(start);
 	assert.match(consoleOutput, /external diagnostic/);
-	assert.match(consoleOutput, /SDC Build WP/);
+	assert.match(stripVTControlCharacters(consoleOutput), new RegExp(`SDC Build WP v${project.version}`));
 	await dashboard.destroy();
 	assert.equal(console.warn, originalWarn, 'Ink restores the console on teardown');
 });
