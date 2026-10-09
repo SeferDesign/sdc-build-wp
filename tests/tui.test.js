@@ -15,7 +15,7 @@ import { validateCreation, getCreationDestination } from '../lib/creation.js';
 
 const settle = () => new Promise(resolve => setTimeout(resolve, 80));
 
-async function createTerminal(t) {
+async function createTerminal(t, { incrementalRendering = true } = {}) {
 	const stdin = new PassThrough();
 	stdin.isTTY = true;
 	stdin.setRawMode = value => { stdin.isRaw = value; };
@@ -44,7 +44,7 @@ async function createTerminal(t) {
 		patchConsole: true,
 		interactive: true,
 		alternateScreen: true,
-		incrementalRendering: true,
+		incrementalRendering,
 		kittyKeyboard: { mode: 'disabled' }
 	});
 	const rerender = dashboard.app.rerender;
@@ -139,6 +139,54 @@ test('Ink measures wrapped layout, reacts to resize, and restores terminal modes
 	assert.match(getOutput(), /\x1b\[\?2004l/);
 	assert.equal(stdin.isRaw, false);
 	assert.equal(stdout.listenerCount('resize'), 0);
+});
+
+test('second header row and feed top border hide below 16 terminal rows and return on resize', async t => {
+	const { dashboard, stdout, getOutput } = await createTerminal(t, { incrementalRendering: false });
+	const visibleRows = [];
+	const originalGetVisibleLogLines = dashboard.getVisibleLogLines.bind(dashboard);
+	t.mock.method(dashboard, 'getVisibleLogLines', rows => {
+		visibleRows.push(rows);
+		return originalGetVisibleLogLines(rows);
+	});
+	const getLastFrame = outputStart => {
+		const output = stripVTControlCharacters(getOutput().slice(outputStart));
+		return output.slice(output.lastIndexOf('SDC Build WP'));
+	};
+	dashboard.setURLs('http://localhost:3000', '');
+	dashboard.isPaused = true;
+	stdout.columns = 120;
+	stdout.rows = 16;
+	let outputStart = getOutput().length;
+	stdout.emit('resize');
+	await settle();
+	let frame = getLastFrame(outputStart);
+	assert.match(frame, /Components: scripts, style/);
+	assert.match(frame, /Local: http:\/\/localhost:3000/);
+	assert.equal((frame.match(/╭/g) || []).length, 1, 'feed should have a top border');
+	const tallLogRows = visibleRows.at(-1);
+
+	outputStart = getOutput().length;
+	stdout.rows = 15;
+	stdout.emit('resize');
+	await settle();
+	frame = getLastFrame(outputStart);
+	assert.doesNotMatch(frame, /Components:|Local:|localhost/);
+	assert.match(frame, /SDC Build WP/);
+	assert.match(frame, /r restart, p pause, n new, q quit/);
+	assert.match(frame, /PAUSED/);
+	assert.equal((frame.match(/╭/g) || []).length, 0, 'feed should not have a top border');
+	assert.equal(visibleRows.at(-1), tallLogRows + 1, 'hiding the header row and feed border should gain a log row when losing one terminal row');
+
+	outputStart = getOutput().length;
+	stdout.rows = 16;
+	stdout.emit('resize');
+	await settle();
+	frame = getLastFrame(outputStart);
+	assert.match(frame, /Components: scripts, style/);
+	assert.match(frame, /Local: http:\/\/localhost:3000/);
+	assert.equal((frame.match(/╭/g) || []).length, 1, 'feed top border should return');
+	assert.equal(visibleRows.at(-1), tallLogRows);
 });
 
 test('mouse reports stay out of prompts and scroll through Ink input', async t => {
