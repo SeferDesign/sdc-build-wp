@@ -168,6 +168,145 @@ for (const Component of [ScriptsComponent, StyleComponent]) {
 	}
 }
 
+test('style watcher formats source CSS initially and on saves without building it', { timeout: 10000 }, async t => {
+	const { root, component, logs } = await setup(t, StyleComponent);
+	t.mock.method(component, 'buildTheme', async () => {});
+	const build = t.mock.method(component, 'build', async () => true);
+	const source = path.join(root, '_src/style');
+	await fs.mkdir(source, { recursive: true });
+	const entry = path.join(source, 'plain.css');
+	const unformatted = '.plain {\n\tcolor: #fff;\n\n\n\n}\n';
+	const formatted = '.plain {\n\tcolor: #ffffff;\n\n}\n';
+	await fs.writeFile(entry, unformatted);
+	const excluded = [
+		path.join(source, 'generated.min.css'),
+		path.join(root, 'blocks/example/build/style.css'),
+		path.join(root, 'blocks/example/style.min.css'),
+		path.join(root, 'dist/style.css')
+	];
+	for (const file of excluded) {
+		await fs.mkdir(path.dirname(file), { recursive: true });
+		await fs.writeFile(file, unformatted);
+	}
+	await component.init();
+	assert.equal(await fs.readFile(entry, 'utf8'), formatted);
+	assert.ok(component.globs.includes(entry));
+	assert.equal(component.files.length, 0);
+	await start(component);
+	await mutate(component, 'change', entry, () => fs.writeFile(entry, unformatted));
+	assert.equal(await fs.readFile(entry, 'utf8'), formatted);
+	const added = path.join(root, 'blocks/example/source.css');
+	await mutate(component, 'add', added, () => fs.writeFile(added, unformatted));
+	assert.equal(await fs.readFile(added, 'utf8'), formatted);
+	await new Promise(resolve => setTimeout(resolve, 200));
+	await component.watchPending;
+	await mutate(component, 'unlink', added, () => fs.unlink(added));
+	assert.ok(!component.globs.includes(added));
+	for (const file of excluded) {
+		assert.ok(!component.globs.includes(file));
+		assert.equal(await fs.readFile(file, 'utf8'), unformatted);
+	}
+	assert.equal(build.mock.calls.length, 0);
+	assert.ok(!logs.some(log => log.type === 'error'), JSON.stringify(logs));
+});
+
+for (const Component of [StyleComponent, ScriptsComponent]) {
+	for (const hasSource of [false, true]) {
+		test(`${Component.name} format-only discovers ${hasSource ? 'the configured source root before dist' : 'dist when source is missing'}`, { timeout: 10000 }, async t => {
+			const styles = Component === StyleComponent;
+			const name = styles ? 'style' : 'scripts';
+			const { root, component, logs } = await setup(t, Component, { formatOnly: { [name]: true } });
+			component.project.paths = {
+				...component.project.paths,
+				src: { ...component.project.paths.src, src: 'source' },
+				dist: 'assets'
+			};
+			const extension = styles ? 'css' : 'js';
+			const sourceRoot = path.join(root, 'source');
+			const distRoot = path.join(root, 'assets');
+			const selectedRoot = hasSource ? sourceRoot : distRoot;
+			const entry = path.join(selectedRoot, name, `main.${extension}`);
+			const unformatted = styles ? '.asset {\n\tcolor: #fff;\n}\n' : 'var message = "hello"\n';
+			const formatted = styles ? '.asset {\n\tcolor: #ffffff;\n}\n' : 'let message = \'hello\';\n';
+			await fs.mkdir(path.dirname(entry), { recursive: true });
+			await fs.mkdir(distRoot, { recursive: true });
+			const outside = path.join(distRoot, `outside.${extension}`);
+			if (hasSource) { await fs.writeFile(outside, unformatted); }
+			await fs.writeFile(entry, unformatted);
+			t.mock.method(component, 'build', async () => { throw new Error('unexpected build'); });
+			if (styles) { t.mock.method(component, 'buildTheme', async () => { throw new Error('unexpected theme generation'); }); }
+			await component.init();
+			assert.equal(await fs.readFile(entry, 'utf8'), formatted);
+			if (hasSource) {
+				assert.equal(await fs.readFile(outside, 'utf8'), unformatted);
+				assert.ok(!component.matchesGlob(outside));
+			}
+			await start(component);
+			const added = path.join(selectedRoot, name, `new.${extension}`);
+			await mutate(component, 'add', added, () => fs.writeFile(added, unformatted));
+			assert.equal(await fs.readFile(added, 'utf8'), formatted);
+			assert.ok(component.globs.includes(added));
+			assert.ok(!logs.some(log => log.type === 'error'), JSON.stringify(logs));
+		});
+	}
+}
+
+for (const Component of [StyleComponent, ScriptsComponent]) {
+	test(`${Component.name} format-only mode formats custom assets without any build work`, { timeout: 10000 }, async t => {
+		const styles = Component === StyleComponent;
+		const name = styles ? 'style' : 'scripts';
+		const { root, component, logs } = await setup(t, Component, { formatOnly: { [name]: true } });
+		const extension = styles ? 'css' : 'js';
+		const source = path.join(root, 'assets', name);
+		const entry = path.join(source, `main.${extension}`);
+		const added = path.join(source, `added.${extension}`);
+		const unformatted = styles ? '.asset {\n\tcolor: #fff;\n\n\n\n}\n' : 'var message = "hello"\n';
+		const formatted = styles ? '.asset {\n\tcolor: #ffffff;\n\n}\n' : 'let message = \'hello\';\n';
+		component.project.config[styles ? 'styleGlobPath' : 'scriptsGlobPath'] = [
+			`${source}/**/*.${extension}`
+		];
+		// Configured build entries must not be discovered or resolved in format-only mode.
+		component.project.config.entries = { main: ['/missing-entry.js', '/missing-entry.scss'] };
+		const discover = t.mock.method(component, 'discoverSourceEntries', async () => { throw new Error('entry discovery ran'); });
+		const build = t.mock.method(component, 'build', async () => { throw new Error('build ran'); });
+		const graph = t.mock.method(component, 'rebuildDependencyGraph', async () => { throw new Error('dependency graph ran'); });
+		const extra = t.mock.method(component, styles ? 'buildTheme' : 'checkAndRebuildAffectedBlocks', async () => {
+			throw new Error('theme or block build ran');
+		});
+		await component.init();
+		await fs.mkdir(source, { recursive: true });
+		await fs.writeFile(entry, unformatted);
+		await component.init();
+		assert.equal(await fs.readFile(entry, 'utf8'), formatted);
+		assert.ok(component.globs.includes(entry));
+		assert.equal(component.files.length, 0);
+		await start(component);
+		await mutate(component, 'add', added, () => fs.writeFile(added, unformatted));
+		assert.equal(await fs.readFile(added, 'utf8'), formatted);
+		await new Promise(resolve => setTimeout(resolve, 200));
+		await component.watchPending;
+		component.project.isRunning = false;
+		await mutate(component, 'change', entry, () => fs.writeFile(entry, unformatted));
+		assert.equal(await fs.readFile(entry, 'utf8'), unformatted);
+		await new Promise(resolve => setTimeout(resolve, 200));
+		component.project.isRunning = true;
+		await mutate(component, 'change', entry, () => fs.writeFile(entry, `${unformatted}\n`));
+		assert.equal(await fs.readFile(entry, 'utf8'), formatted + (styles ? '' : '\n'));
+		await new Promise(resolve => setTimeout(resolve, 200));
+		await component.watchPending;
+		await mutate(component, 'unlink', added, () => fs.unlink(added));
+		assert.ok(!component.globs.includes(added));
+		const outside = path.join(root, `outside.${extension}`);
+		assert.ok(!component.matchesGlob(outside));
+		if (styles) { assert.ok(!component.matchesGlob(component.project.paths.theme.json)); }
+		for (const mock of [discover, build, graph, extra]) {
+			assert.equal(mock.mock.calls.length, 0);
+		}
+		await assert.rejects(fs.access(path.join(root, 'dist')), { code: 'ENOENT' });
+		assert.ok(!logs.some(log => log.type === 'error'), JSON.stringify(logs));
+	});
+}
+
 test('font watcher copies files from an initially missing custom source directory', { timeout: 10000 }, async t => {
 	const { root, component } = await setup(t, FontsComponent);
 	const source = path.join(root, 'custom-fonts');

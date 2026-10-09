@@ -20,6 +20,9 @@ test('config accepts defaults and typed overrides without mutating defaults', ()
 	assert.equal(defaults.php.enabled, true);
 	assert.deepEqual(mergeWithDefaults({}).errorLogPaths, defaults.errorLogPaths);
 	assert.deepEqual(mergeWithDefaults({ errorLogPath: null }).errorLogPaths, defaults.errorLogPaths);
+	assert.equal(validateConfig({ formatOnly: { style: true, scripts: false } }), true);
+	assert.deepEqual(mergeWithDefaults({ formatOnly: { style: true } }).formatOnly, { style: true, scripts: false });
+	assert.deepEqual(defaults.formatOnly, { style: false, scripts: false });
 });
 
 for (const [name, config] of [
@@ -27,7 +30,11 @@ for (const [name, config] of [
 	['error log path', { errorLogPath: [] }],
 	['entries', { entries: [] }],
 	['concurrency', { buildConcurrency: { total: 'two' } }],
-	['PHP enabled', { php: { enabled: 'yes' } }]
+	['PHP enabled', { php: { enabled: 'yes' } }],
+	['format-only object', { formatOnly: true }],
+	['format-only array', { formatOnly: [] }],
+	['format-only style', { formatOnly: { style: 'yes' } }],
+	['format-only scripts', { formatOnly: { scripts: 1 } }]
 ]) {
 	test(`config rejects invalid ${name} and reports the error`, t => {
 		const output = [];

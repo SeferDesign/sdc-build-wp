@@ -6,6 +6,31 @@ import path from 'node:path';
 import project from '../lib/project.js';
 import ScriptsComponent from '../lib/components/scripts.js';
 
+test('format-only scripts log successful formatting but not syntax failures or empty passes', async t => {
+	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-script-logs-'));
+	t.after(() => fs.rm(root, { recursive: true, force: true }));
+	const component = new ScriptsComponent();
+	component.project = { ...project, path: root, config: { formatOnly: { scripts: true } } };
+	const logs = [];
+	component.log = (type, message) => logs.push({ type, message });
+	const entry = path.join(root, 'file.js');
+	await fs.writeFile(entry, 'var message = "hello"\n');
+	await component.process([entry]);
+	assert.equal(await fs.readFile(entry, 'utf8'), 'let message = \'hello\';\n');
+	assert.ok(logs.some(log => log.type === 'success' && /^Formatted \/file.js in \d+ms$/.test(log.message)));
+	logs.length = 0;
+	await fs.writeFile(entry, 'const message = ;\n');
+	await component.process([entry]);
+	assert.ok(logs.some(log => /Parsing error/.test(log.message)));
+	assert.ok(!logs.some(log => log.type === 'success'));
+	logs.length = 0;
+	await component.process([]);
+	assert.deepEqual(logs, []);
+	await fs.writeFile(entry, 'let message = \'hello\';\n');
+	await component.lint([entry]);
+	assert.ok(!logs.some(log => log.type === 'success'));
+});
+
 test('scripts resolve dependencies once per processed entry and refresh after lint fixes', async t => {
 	const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-scripts-test-'));
 	const originalPath = project.path;
