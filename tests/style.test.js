@@ -6,6 +6,50 @@ import path from 'node:path';
 import project from '../lib/project.js';
 import StyleComponent from '../lib/components/style.js';
 
+for (const extension of ['css', 'scss']) {
+	for (const newline of ['\n', '\r\n']) {
+		test(`${extension} formatting limits blank lines around closing braces (${JSON.stringify(newline)})`, async t => {
+			const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-style-spacing-'));
+			t.after(() => fs.rm(root, { recursive: true, force: true }));
+			const entry = path.join(root, `spacing.${extension}`);
+			const source = [
+				'.first {',
+				'\tcolor: #ffffff;',
+				'', '', '',
+				'}',
+				'', '', '',
+				'@media (min-width: 10px) {',
+				'',
+				'\t.nested {',
+				'\t\tcolor: #000000;',
+				'', '', '',
+				'\t}',
+				'', '', '',
+				'}',
+				'',
+				'.single {',
+				'\tcolor: #ffffff;',
+				'',
+				'}',
+				'',
+				'.none {',
+				'\tcolor: #000000;',
+				'}',
+				''
+			].join(newline);
+			await fs.writeFile(entry, source);
+			const component = new StyleComponent();
+			const logs = [];
+			component.log = (type, message) => logs.push({ type, message });
+			assert.equal(await component.lint([entry]), true, JSON.stringify(logs));
+			const formatted = await fs.readFile(entry, 'utf8');
+			assert.equal(formatted, source.replace(new RegExp(`(?:${newline}){3,}`, 'g'), newline.repeat(2)));
+			assert.equal(await component.lint([entry]), true, JSON.stringify(logs));
+			assert.equal(await fs.readFile(entry, 'utf8'), formatted);
+		});
+	}
+}
+
 test('Sass dependency replacement removes stale reverse mappings and keeps shared entries', async t => {
 	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-style-'));
 	t.after(() => fs.rm(root, { recursive: true, force: true }));

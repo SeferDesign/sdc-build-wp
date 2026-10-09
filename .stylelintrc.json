@@ -1,8 +1,9 @@
 {
-	"plugins": ["@stylistic/stylelint-plugin", "stylelint-use-logical"],
+	"plugins": ["@stylistic/stylelint-plugin", "stylelint-use-logical", "./lib/stylelint/block-max-empty-lines.js"],
 	"rules": {
 		"@stylistic/indentation": "tab",
 		"@stylistic/max-empty-lines": 1,
+		"sdc/block-max-empty-lines": 1,
 		"rule-empty-line-before": [
 			"always",
 			{
