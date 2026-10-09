@@ -55,6 +55,7 @@ While watch is enabled, use the following keyboard commands to control the build
 [c]     Clear cache and restart
 [p]     Pause/Resume watching
 [n]     New component
+[i]     Show build information (components, URLs, and commands)
 [f]     Toggle filter
 [/]     Search logs
 [q]     Quit

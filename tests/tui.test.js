@@ -173,10 +173,11 @@ test('second header row and feed top border hide below 16 terminal rows and retu
 	frame = getLastFrame(outputStart);
 	assert.doesNotMatch(frame, /Components:|Local:|localhost/);
 	assert.match(frame, /SDC Build WP/);
-	assert.match(frame, /r restart, p pause, n new, q quit/);
+	assert.match(frame.split('\n').find(line => line.includes('SDC Build WP')), /SDC Build WP.*\[i\] info/);
+	assert.doesNotMatch(frame, /r restart, p pause, n new, q quit/);
 	assert.match(frame, /PAUSED/);
 	assert.equal((frame.match(/╭/g) || []).length, 0, 'feed should not have a top border');
-	assert.equal(visibleRows.at(-1), tallLogRows + 1, 'hiding the header row and feed border should gain a log row when losing one terminal row');
+	assert.equal(visibleRows.at(-1), tallLogRows + 2, 'hiding the secondary header row, commands, and feed border should gain two log rows when losing one terminal row');
 
 	outputStart = getOutput().length;
 	stdout.rows = 16;
@@ -185,6 +186,7 @@ test('second header row and feed top border hide below 16 terminal rows and retu
 	frame = getLastFrame(outputStart);
 	assert.match(frame, /Components: scripts, style/);
 	assert.match(frame, /Local: http:\/\/localhost:3000/);
+	assert.match(frame, /r restart, p pause, n new, q quit/);
 	assert.equal((frame.match(/╭/g) || []).length, 1, 'feed top border should return');
 	assert.equal(visibleRows.at(-1), tallLogRows);
 });
@@ -414,6 +416,31 @@ test('/ opens live search, Enter keeps it, Escape restores query and scroll, and
 	stdin.write('\x1b');
 	await settle();
 	assert.equal(await creation, null);
+});
+
+test('i opens build information and Enter or Escape closes it', async t => {
+	const { dashboard, stdin, getOutput } = await createTerminal(t);
+	dashboard.setURLs('http://localhost:3000', 'https://example.test');
+	dashboard.setCommands('Commands: i info, q quit');
+	dashboard.commandHandler = input => {
+		if (input === 'i') { dashboard.showInfo(); }
+	};
+	stdin.write('i');
+	await settle();
+	assert.equal(dashboard._activePrompt.type, 'info');
+	assert.match(stripVTControlCharacters(getOutput()), /Build information/);
+	assert.match(stripVTControlCharacters(getOutput()), /Components: scripts, style/);
+	assert.match(stripVTControlCharacters(getOutput()), /Local URL: http:\/\/localhost:3000/);
+	assert.match(stripVTControlCharacters(getOutput()), /External URL: https:\/\/example\.test/);
+	assert.match(stripVTControlCharacters(getOutput()), /Commands: i info, q quit/);
+	stdin.write('\x1b');
+	await settle();
+	assert.equal(dashboard.hasPrompt(), false);
+	stdin.write('i');
+	await settle();
+	stdin.write('\r');
+	await settle();
+	assert.equal(dashboard.hasPrompt(), false);
 });
 
 test('f toggles Filter without dispatching a command or interfering with name input', async t => {
@@ -657,6 +684,9 @@ test('watch commands ignore modifiers and pause/resume using parsed Ink keys', a
 	});
 	keypressListen();
 	project.isRunning = true;
+	const showInfo = t.mock.method(tui, 'showInfo');
+	await tui.commandHandler('i', {});
+	assert.equal(showInfo.mock.callCount(), 1);
 	await tui.commandHandler('p', { meta: true });
 	assert.equal(project.isRunning, true);
 	await tui.commandHandler('p', {});
