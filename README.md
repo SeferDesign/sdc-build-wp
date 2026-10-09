@@ -45,6 +45,9 @@ Optional concurrency caps can be set in `.sdc-build-wp/config.json` to keep expe
 
 ## Watch
 
+PHP saves automatically fix formatting without logging coding-standard
+violations. PHP syntax errors are still logged and prevent formatting and reload.
+
 While watch is enabled, use the following keyboard commands to control the build process:
 
 ```sh
@@ -90,7 +93,7 @@ and images on changes without starting BrowserSync. Quit with `q` or Ctrl+C.
 Tests build a temporary copy, verify Sass, JavaScript, SVG output and source maps,
 and check cache reuse, dependency changes, missing outputs, and `--no-cache`.
 The fixture stays unchanged. A block render PHP fixture also tests discovery,
-linting, formatting, and rejection of syntax and coding-standard errors through
+quiet formatting, acceptance of coding-standard violations, and rejection of syntax errors through
 the PHP component. Run `composer install` and have PHP available before running
 the full suite; release CI installs these tools automatically. No WordPress
 server is required. Server-free file watching is tested; block compilation and

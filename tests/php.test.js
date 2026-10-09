@@ -82,9 +82,8 @@ for (const customGlob of [false, true]) {
 	});
 }
 
-test('block PHP passes lint, is formatted, and rejects syntax and coding-standard errors', { timeout: 30000 }, async t => {
+test('block PHP is formatted quietly, ignores coding-standard violations, and rejects syntax errors', { timeout: 30000 }, async t => {
 	await execFileAsync('php', ['--version']);
-	await fs.access(new URL('../vendor/bin/phpcs', import.meta.url));
 	await fs.access(new URL('../vendor/bin/php-cs-fixer', import.meta.url));
 	const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-php-')));
 	t.after(() => fs.rm(root, { recursive: true, force: true }));
@@ -114,20 +113,26 @@ test('block PHP passes lint, is formatted, and rejects syntax and coding-standar
 	assert.match((await run('fix')).stdout, /Linted \(fix\)/);
 	assert.equal(await fs.readFile(entry, 'utf8'), source);
 
-	await fs.writeFile(entry, '<?php\n$message = ;\n');
-	await assert.rejects(run('warn'), error => {
-		assert.equal(error.code, 1);
-		assert.match(error.stdout + error.stderr, /Failed to validate/);
-		assert.doesNotMatch(error.stdout + error.stderr, /Linted \(/);
-		return true;
-	});
+	const invalidSource = '<?php\n$message = ;\n';
+	await fs.writeFile(entry, invalidSource);
+	for (const lintType of ['warn', 'fix']) {
+		await assert.rejects(run(lintType), error => {
+			assert.equal(error.code, 1);
+			assert.match(error.stdout + error.stderr, /Failed to validate/);
+			assert.doesNotMatch(error.stdout + error.stderr, /Linted \(/);
+			return true;
+		});
+		assert.equal(await fs.readFile(entry, 'utf8'), invalidSource);
+	}
 
-	await fs.writeFile(entry, '<?php\nvar_dump(\'fixture\');\n');
-	await assert.rejects(run('warn'), error => {
-		assert.equal(error.code, 1);
-		assert.match(error.stdout + error.stderr, /var_dump/);
-		assert.match(error.stdout + error.stderr, /Failed linting/);
-		assert.doesNotMatch(error.stdout + error.stderr, /Linted \(/);
-		return true;
-	});
+	const codingStandardSource = '<?php\nfunction register_enqueue($unused) {\n\t$message   =   \'fixture\';\n\tvar_dump($message);\n}\n';
+	await fs.writeFile(entry, codingStandardSource);
+	for (const lintType of ['warn', 'fix']) {
+		const { stdout, stderr } = await run(lintType);
+		assert.match(stdout, /Linted \(/);
+		assert.doesNotMatch(stdout + stderr, /FOUND \d+ ERRORS|WARNING|var_dump|camel caps|never used|Failed/);
+		assert.equal(await fs.readFile(entry, 'utf8'), lintType === 'fix'
+			? codingStandardSource.replace('$message   =   ', '$message = ')
+			: codingStandardSource);
+	}
 });
