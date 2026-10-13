@@ -197,6 +197,23 @@ test('second header row and feed top border hide below 16 terminal rows and retu
 	assert.match(frame, /r restart, p pause, n new, q quit/);
 	assert.equal((frame.match(/╭/g) || []).length, 1, 'feed top border should return');
 	assert.equal(visibleRows.at(-1), tallLogRows);
+
+	outputStart = getOutput().length;
+	stdout.columns = 89;
+	stdout.emit('resize');
+	await settle();
+	frame = getLastFrame(outputStart);
+	assert.doesNotMatch(frame, /Components:|Local:|localhost/);
+	assert.match(frame.split('\n').find(line => line.includes('SDC Build WP')), /SDC Build WP.*\[i\] info/);
+	assert.doesNotMatch(frame, /r restart, p pause, n new, q quit/);
+
+	outputStart = getOutput().length;
+	stdout.columns = 90;
+	stdout.emit('resize');
+	await settle();
+	frame = getLastFrame(outputStart);
+	assert.match(frame, /Components: scripts, style/);
+	assert.match(frame, /r restart, p pause, n new, q quit/);
 });
 
 test('mouse reports stay out of prompts and scroll through Ink input', async t => {
@@ -494,6 +511,7 @@ test('component selector keeps selection visible in short and narrow terminals',
 	await settle();
 	dashboard.setComponents(Array.from({ length: 20 }, (_, index) => `component-${index}`));
 	dashboard.selectComponent('component-19');
+	stdout.columns = 100;
 	stdout.rows = 16;
 	stdout.emit('resize');
 	await settle();
