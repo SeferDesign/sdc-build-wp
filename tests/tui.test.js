@@ -101,10 +101,10 @@ test('Ink separates pasted names from commands and supports Backspace, Delete, a
 test('Ink measures wrapped layout, reacts to resize, and restores terminal modes', async t => {
 	const { dashboard, stdout, stdin, getOutput } = await createTerminal(t);
 	const visibleRows = [];
-	const originalGetVisibleLogLines = dashboard.getVisibleLogLines.bind(dashboard);
-	t.mock.method(dashboard, 'getVisibleLogLines', rows => {
+	const originalGetVisibleLogEntries = dashboard.getVisibleLogEntries.bind(dashboard);
+	t.mock.method(dashboard, 'getVisibleLogEntries', rows => {
 		visibleRows.push(rows);
-		return originalGetVisibleLogLines(rows);
+		return originalGetVisibleLogEntries(rows);
 	});
 	dashboard.setURLs('https://a-long-local-hostname.example.test:3000', '');
 	for (let index = 0; index < 40; index++) {
@@ -141,13 +141,21 @@ test('Ink measures wrapped layout, reacts to resize, and restores terminal modes
 	assert.equal(stdout.listenerCount('resize'), 0);
 });
 
+test('PHP diagnostics wrap instead of truncating long error_log payloads', async t => {
+	const { dashboard, getOutput } = await createTerminal(t);
+	const payloadEnd = 'json-payload-complete';
+	dashboard.log(`PHP: ${JSON.stringify({ payload: `${'x'.repeat(180)}${payloadEnd}` })}`, 'errors');
+	await settle();
+	assert.ok(getOutput().includes(payloadEnd));
+});
+
 test('second header row and feed top border hide below 16 terminal rows and return on resize', async t => {
 	const { dashboard, stdout, getOutput } = await createTerminal(t, { incrementalRendering: false });
 	const visibleRows = [];
-	const originalGetVisibleLogLines = dashboard.getVisibleLogLines.bind(dashboard);
-	t.mock.method(dashboard, 'getVisibleLogLines', rows => {
+	const originalGetVisibleLogEntries = dashboard.getVisibleLogEntries.bind(dashboard);
+	t.mock.method(dashboard, 'getVisibleLogEntries', rows => {
 		visibleRows.push(rows);
-		return originalGetVisibleLogLines(rows);
+		return originalGetVisibleLogEntries(rows);
 	});
 	const getLastFrame = outputStart => {
 		const output = stripVTControlCharacters(getOutput().slice(outputStart));
@@ -313,13 +321,14 @@ test('bursts of multiline errors stay within the log viewport and console output
 	const originalWarn = console.warn;
 	const { dashboard, getOutput } = await createTerminal(t);
 	const rowCounts = [];
-	const getLines = dashboard.getVisibleLogLines.bind(dashboard);
-	t.mock.method(dashboard, 'getVisibleLogLines', rows => {
-		const lines = getLines(rows);
+	const getEntries = dashboard.getVisibleLogEntries.bind(dashboard);
+	t.mock.method(dashboard, 'getVisibleLogEntries', rows => {
+		const entries = getEntries(rows);
+		const lines = entries.map(entry => entry.message);
 		assert.ok(lines.length <= rows);
 		assert.ok(lines.every(line => !/[\r\n\t]/.test(line)));
 		rowCounts.push(rows);
-		return lines;
+		return entries;
 	});
 	for (let index = 0; index < 30; index++) {
 		dashboard.log(`PHP warning ${index}\r\n\tcontext ${index}\ntrace ${index}\n`, 'scripts');
