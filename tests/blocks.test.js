@@ -71,6 +71,23 @@ test('cached blocks require existing output and missing block metadata fails exp
 	assert.equal(logs.filter(entry => /no block.json found/.test(entry.message)).length, 2);
 });
 
+test('single block builds use the package WordPress Scripts dependency without theme node_modules', async t => {
+	const { root, component, logs } = await setup(t);
+	const entry = await makeBlock(root, 'standalone');
+	await fs.writeFile(path.join(root, 'package.json'), JSON.stringify({
+		name: 'fixture-theme',
+		private: true,
+		browserslist: ['defaults']
+	}));
+	t.mock.method(component, 'shouldSkipBuild', async () => false);
+	const update = t.mock.method(component, 'updateBuildCache', async () => {});
+	await assert.rejects(fs.stat(path.join(root, 'node_modules')), { code: 'ENOENT' });
+	await component.build(entry);
+	assert.deepEqual(logs.filter(log => log.type === 'error'), [], JSON.stringify(logs));
+	assert.ok((await fs.stat(path.join(entry, 'build/index.js'))).isFile());
+	assert.equal(update.mock.calls.length, 1);
+});
+
 test('block batch compilation caches only successful builds and reports compiler diagnostics', async t => {
 	const { root, component, logs } = await setup(t);
 	const good = await makeBlock(root, 'good');
