@@ -66,9 +66,20 @@ test('cached blocks require existing output and missing block metadata fails exp
 	assert.equal(end.mock.calls[0].arguments[0].cached, true);
 	await component.buildAll([entry]);
 	assert.equal(end.mock.calls.length, 2);
+	const empty = path.join(root, 'blocks', 'empty');
+	await fs.mkdir(empty, { recursive: true });
+	assert.equal(await component.build(empty), false);
+	await component.buildAll([empty]);
+	assert.equal(logs.filter(entry => /no block.json found/.test(entry.message)).length, 0);
+	const incomplete = path.join(root, 'blocks', 'incomplete');
+	await fs.mkdir(incomplete, { recursive: true });
+	await fs.writeFile(path.join(incomplete, 'README.md'), 'Missing block metadata');
+	assert.equal(await component.build(incomplete), false);
+	await component.buildAll([incomplete]);
+	assert.equal(logs.filter(entry => /no block.json found/.test(entry.message)).length, 2);
 	assert.equal(await component.build(path.join(root, 'absent')), false);
 	await component.buildAll([path.join(root, 'absent')]);
-	assert.equal(logs.filter(entry => /no block.json found/.test(entry.message)).length, 2);
+	assert.equal(logs.filter(entry => /no block.json found/.test(entry.message)).length, 4);
 });
 
 test('single block builds use the package WordPress Scripts dependency without theme node_modules', async t => {
