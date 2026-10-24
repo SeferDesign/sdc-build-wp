@@ -141,12 +141,15 @@ test('Ink measures wrapped layout, reacts to resize, and restores terminal modes
 	assert.equal(stdout.listenerCount('resize'), 0);
 });
 
-test('PHP diagnostics wrap instead of truncating long error_log payloads', async t => {
+test('PHP errors and warnings wrap instead of truncating long error_log payloads', async t => {
 	const { dashboard, getOutput } = await createTerminal(t);
-	const payloadEnd = 'json-payload-complete';
-	dashboard.log(`PHP: ${JSON.stringify({ payload: `${'x'.repeat(180)}${payloadEnd}` })}`, 'errors');
+	const errorPayloadEnd = 'error-payload-complete';
+	const warningPayloadEnd = 'warning-payload-complete';
+	dashboard.log(`PHP: ${JSON.stringify({ payload: `${'x'.repeat(180)}${errorPayloadEnd}` })}`, 'errors');
+	dashboard.log(`PHP Warning: ${JSON.stringify({ payload: `${'x'.repeat(180)}${warningPayloadEnd}` })}`, 'errors');
 	await settle();
-	assert.ok(getOutput().includes(payloadEnd));
+	assert.ok(getOutput().includes(errorPayloadEnd));
+	assert.ok(getOutput().includes(warningPayloadEnd));
 });
 
 test('second header row and feed top border hide below 16 terminal rows and return on resize', async t => {
