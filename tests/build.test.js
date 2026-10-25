@@ -12,6 +12,20 @@ const execFileAsync = promisify(execFile);
 const cli = fileURLToPath(new URL('../index.js', import.meta.url));
 const fixture = fileURLToPath(new URL('./fixtures/theme/', import.meta.url));
 
+test('CLI exits nonzero when a component logs a build failure', async t => {
+	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-failure-'));
+	t.after(() => fs.rm(root, { recursive: true, force: true }));
+	await fs.cp(fixture, root, { recursive: true });
+	await fs.writeFile(path.join(root, '_src/style/main.scss'), '.broken { color: $missing; }');
+	await assert.rejects(execFileAsync(process.execPath, [cli, '--builds=style', '--no-cache'], {
+		cwd: root, timeout: 30000
+	}), error => {
+		assert.equal(error.code, 1);
+		assert.match(error.stdout + error.stderr, /Build failed/);
+		return true;
+	});
+});
+
 test('watch mode discovers entries and dependencies and rebuilds without the server component', { timeout: 30000 }, async t => {
 	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-watch-'));
 	await fs.cp(fixture, root, { recursive: true });
