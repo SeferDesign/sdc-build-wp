@@ -94,6 +94,14 @@ test('watch mode discovers entries and dependencies and rebuilds without the ser
 	assert.equal(runInNewContext(`${updatedBundle}; sdcBuild.getMessage()`), 'dependency-updated');
 	await assert.rejects(fs.access(path.join(root, 'dist/scripts/nested/new.min.js')), { code: 'ENOENT' });
 	assert.doesNotMatch(output, /Failed|Uncaught|Unhandled|✖/);
+	const lastGoodBundle = await fs.readFile(path.join(root, 'dist/scripts/main.min.js'), 'utf8');
+	const beforeFailure = output.length;
+	await fs.writeFile(path.join(root, '_src/scripts/main.js'), 'import "./missing-module.js";');
+	await waitFor(() => output.slice(beforeFailure).includes('Failed building'));
+	assert.equal(child.exitCode, null, output);
+	assert.equal(await fs.readFile(path.join(root, 'dist/scripts/main.min.js'), 'utf8'), lastGoodBundle);
+	await fs.writeFile(path.join(root, '_src/scripts/main.js'), 'export const recovered = "watch-recovered";');
+	await waitFor(() => contains('dist/scripts/main.min.js', 'watch-recovered'));
 	child.kill('SIGINT');
 	await waitFor(() => child.exitCode !== null);
 	assert.deepEqual(await exited, { code: 0, signal: null });
@@ -164,4 +172,50 @@ test('test theme builds through the CLI, reuses cache, and rebuilds changed or m
 	const uncachedOutput = await build('--no-cache');
 	assert.doesNotMatch(uncachedOutput, /\(cached\)/);
 	assert.equal(await bundleMessage(), 'fixture-updated');
+});
+
+test('CLI rejects invalid input and failed writes without reporting success', async t => {
+	for (const scenario of [
+		{ name: 'unresolved import', builds: 'scripts', prepare: root => fs.writeFile(path.join(root, '_src/scripts/main.js'), 'import "./absent.js";'), pattern: /Failed building/ },
+		{ name: 'invalid config', builds: 'scripts', prepare: root => fs.writeFile(path.join(root, '.sdc-build-wp/config.json'), '{"buildConcurrency":{"total":0}}'), pattern: /Configuration validation failed/ },
+		{ name: 'malformed JSON', builds: 'scripts', prepare: root => fs.writeFile(path.join(root, '.sdc-build-wp/config.json'), '{'), pattern: /Failed to load config/ },
+		{ name: 'unknown component', builds: 'scritps', prepare: async () => {}, pattern: /Unknown build components/ },
+		{ name: 'failed output write', builds: 'scripts', prepare: async root => {
+			const output = path.join(root, 'dist/scripts/main.min.js');
+			await fs.rm(output, { recursive: true, force: true });
+			await fs.mkdir(output, { recursive: true });
+		}, pattern: /Failed building/ }
+	]) {
+		await t.test(scenario.name, async t => {
+			const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-cli-error-'));
+			t.after(() => fs.rm(root, { recursive: true, force: true }));
+			await fs.cp(fixture, root, { recursive: true });
+			await scenario.prepare(root);
+			await assert.rejects(execFileAsync(process.execPath, [cli, `--builds=${scenario.builds}`, '--no-cache'], {
+				cwd: root, timeout: 30000
+			}), error => {
+				assert.equal(error.code, 1);
+				assert.match(error.stdout + error.stderr, scenario.pattern);
+				assert.doesNotMatch(error.stdout, /Finished initial build/);
+				return true;
+			});
+		});
+	}
+});
+
+test('CLI compiles a real WordPress block with metadata and dependency output', { timeout: 60000 }, async t => {
+	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-cli-block-'));
+	t.after(() => fs.rm(root, { recursive: true, force: true }));
+	await fs.cp(fixture, root, { recursive: true });
+	await fs.writeFile(path.join(root, 'package.json'), JSON.stringify({ name: 'fixture-theme', private: true, browserslist: ['defaults'] }));
+	const source = path.join(root, 'blocks/example/src');
+	await fs.mkdir(source, { recursive: true });
+	await fs.writeFile(path.join(source, 'block.json'), JSON.stringify({ apiVersion: 3, name: 'fixture/example', title: 'Example', category: 'widgets', editorScript: 'file:./index.js' }));
+	await fs.writeFile(path.join(source, 'index.js'), 'window.fixtureBlock = "compiled-block";');
+	const { stdout, stderr } = await execFileAsync(process.execPath, [cli, '--builds=blocks', '--no-cache'], { cwd: root, timeout: 45000 });
+	assert.doesNotMatch(stdout + stderr, /Failed|Uncaught|Unhandled/);
+	const output = path.join(root, 'blocks/example/build');
+	assert.match(await fs.readFile(path.join(output, 'index.js'), 'utf8'), /compiled-block/);
+	assert.match(await fs.readFile(path.join(output, 'index.asset.php'), 'utf8'), /dependencies/);
+	assert.equal(JSON.parse(await fs.readFile(path.join(output, 'block.json'), 'utf8')).name, 'fixture/example');
 });

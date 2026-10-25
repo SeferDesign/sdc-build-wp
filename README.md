@@ -88,7 +88,8 @@ and function coverage report for `lib`. CLI integration subprocesses contribute
 to the report; external PHP tooling and generated bundles are not measured.
 Additional unit tests cover configuration validation, dependency resolution,
 asset processing, HTML formatting, and block build/cache/queue failure handling.
-Block orchestration tests stub webpack execution rather than compile a full block.
+Block orchestration unit tests stub webpack execution; CLI integration also
+compiles a real block and verifies its metadata and dependency output.
 Cache lifecycle, Sass dependency updates, and watcher event routing also have
 regression coverage. Watcher unit tests simulate events without starting servers.
 
@@ -107,8 +108,9 @@ The fixture stays unchanged. A block render PHP fixture also tests discovery,
 quiet formatting, acceptance of coding-standard violations, and rejection of syntax errors through
 the PHP component. Run `composer install` and have PHP available before running
 the full suite; release CI installs these tools automatically. No WordPress
-server is required. Server-free file watching is tested; block compilation and
-interactive terminal rendering are not covered by the fixture tests.
+server is required. Server-free file watching, recovery from broken imports,
+failure exit codes, invalid configuration, and failed output writes are tested.
+Interactive terminal rendering is not covered by the fixture tests.
 
 Use `npm run release:patch`, `npm run release:minor`, or `npm run release:major`.
 All tests must pass before the release script changes the version, commits, tags,
