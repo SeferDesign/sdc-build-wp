@@ -148,8 +148,25 @@ test('PHP errors and warnings wrap instead of truncating long error_log payloads
 	dashboard.log(`PHP: ${JSON.stringify({ payload: `${'x'.repeat(180)}${errorPayloadEnd}` })}`, 'errors');
 	dashboard.log(`PHP Warning: ${JSON.stringify({ payload: `${'x'.repeat(180)}${warningPayloadEnd}` })}`, 'errors');
 	await settle();
-	assert.ok(getOutput().includes(errorPayloadEnd));
-	assert.ok(getOutput().includes(warningPayloadEnd));
+	const visibleText = stripVTControlCharacters(getOutput()).replace(/[\s│]/g, '');
+	assert.ok(visibleText.includes(errorPayloadEnd));
+	assert.ok(visibleText.includes(warningPayloadEnd));
+});
+
+test('long diagnostic messages wrap fully and scrolling counts visual rows', async t => {
+	const { dashboard, getOutput } = await createTerminal(t);
+	const message = `blocks/example/src/block.json (/settings/color/palette): ${'diagnostic '.repeat(18)}complete-diagnostic`;
+	dashboard.log(message);
+	await settle();
+	assert.ok(getOutput().includes('complete-diagnostic'));
+	assert.equal(dashboard.getWrappedLogHistory().map(entry => stripVTControlCharacters(entry.message)).join(''), message);
+	dashboard._logColumns = 20;
+	const visualRows = dashboard.getWrappedLogHistory();
+	assert.ok(visualRows.length > 2);
+	assert.deepEqual(dashboard.getVisibleLogLines(2), visualRows.slice(-2).map(entry => entry.message));
+	dashboard.scrollLogs(2);
+	assert.deepEqual(dashboard.getVisibleLogLines(2), visualRows.slice(-4, -2).map(entry => entry.message));
+	assert.equal(dashboard.getLogHistory(), message);
 });
 
 test('second header row and feed top border hide below 16 terminal rows and return on resize', async t => {
