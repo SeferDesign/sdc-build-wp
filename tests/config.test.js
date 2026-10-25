@@ -46,9 +46,28 @@ for (const [name, config] of [
 	});
 }
 
-test('unknown nested config keys warn but remain compatible', t => {
+test('unknown nested config keys are rejected', t => {
 	const output = [];
-	t.mock.method(console, 'warn', value => output.push(String(value)));
-	assert.equal(validateConfig({ php: { enabled: null, futureOption: true } }), true);
-	assert.match(output.join('\n'), /php.futureOption/);
+	t.mock.method(console, 'error', value => output.push(String(value)));
+	assert.equal(validateConfig({ php: { futureOption: true } }), false);
+	assert.match(output.join('\n'), /php\/futureOption/);
+});
+
+test('schema validates all supported configuration fields and rejects malformed values', t => {
+	t.mock.method(console, 'error', () => {});
+	assert.equal(validateConfig({
+		$schema: '../../node_modules/sdc-build-wp/config.schema.json',
+		paths: { src: { src: 'src', fonts: 'fonts' }, dist: 'build' },
+		fontsPath: 'assets/fonts', styleGlobPath: ['src/**/*.scss'],
+		sassGlobPath: '**/*.scss', scriptsGlobPath: '**/*.js',
+		phpGlobPath: ['**/*.php'], htmlGlobPath: '**/*.html', port: 3001,
+		browsersync: { localProxyURL: 'https://example.loc', location: 'end', open: false, tunnel: false, watchEvents: ['change'] }
+	}), true);
+	for (const config of [null, [], { typo: true }, { paths: { typo: 'src' } },
+		{ buildConcurrency: { total: 0 } }, { buildConcurrency: { total: -1 } },
+		{ buildConcurrency: { total: 1.5 } }, { entries: { main: 'main.js' } },
+		{ entries: { main: [42] } }, { php: null }, { port: 65536 },
+		{ browsersync: { localProxyURL: 'example.loc' } }]) {
+		assert.equal(validateConfig(config), false, JSON.stringify(config));
+	}
 });

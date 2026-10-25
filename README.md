@@ -31,6 +31,12 @@ without exiting so subsequent saves can recover.
 
 Optional concurrency caps can be set in `.sdc-build-wp/config.json` to keep expensive builds parallel without oversubscribing the machine. By default, concurrency is based on available CPU cores (with a minimum, even on single-core machines, since builds spend meaningful time on process startup/IO rather than pure CPU work).
 
+Add `"$schema": "../node_modules/sdc-build-wp/config.schema.json"` to that file
+for editor autocomplete and validation. The same schema validates configuration
+at startup. Unknown settings, malformed entry arrays, invalid proxy URLs, and
+non-positive or fractional concurrency caps are rejected. Unknown `--builds`
+component names are also rejected before building.
+
 `total` limits combined style/script compilation, linting, block compilation, image processing, and font copying across components, including watch rebuilds. It defaults to the `default` cap. Component caps apply in addition to this shared budget; directory discovery and dependency traversal do not hold build slots.
 
 ```json

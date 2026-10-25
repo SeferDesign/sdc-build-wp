@@ -1,0 +1,90 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "SDC Build WP Configuration",
+	"type": "object",
+	"additionalProperties": false,
+	"definitions": {
+		"path": { "type": "string", "minLength": 1 },
+		"glob": {
+			"anyOf": [
+				{ "$ref": "#/definitions/path" },
+				{ "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/path" } }
+			]
+		},
+		"concurrency": { "type": "integer", "minimum": 1 }
+	},
+	"properties": {
+		"$schema": { "type": "string" },
+		"imagesPath": { "$ref": "#/definitions/path" },
+		"fontsPath": { "$ref": "#/definitions/path" },
+		"errorLogPath": { "type": ["string", "null"] },
+		"styleGlobPath": { "$ref": "#/definitions/glob" },
+		"sassGlobPath": { "$ref": "#/definitions/glob" },
+		"scriptsGlobPath": { "$ref": "#/definitions/glob" },
+		"phpGlobPath": { "$ref": "#/definitions/glob" },
+		"htmlGlobPath": { "$ref": "#/definitions/glob" },
+		"entries": {
+			"type": "object",
+			"additionalProperties": {
+				"type": "array", "minItems": 1,
+				"items": { "$ref": "#/definitions/path" }
+			}
+		},
+		"paths": {
+			"type": "object", "additionalProperties": false,
+			"properties": {
+				"dist": { "$ref": "#/definitions/path" },
+				"src": {
+					"type": "object", "additionalProperties": false,
+					"properties": {
+						"src": { "$ref": "#/definitions/path" },
+						"style": { "$ref": "#/definitions/path" },
+						"scripts": { "$ref": "#/definitions/path" },
+						"images": { "$ref": "#/definitions/path" },
+						"fonts": { "$ref": "#/definitions/path" }
+					}
+				}
+			}
+		},
+		"formatOnly": {
+			"type": "object", "additionalProperties": false,
+			"properties": {
+				"style": { "type": "boolean" },
+				"scripts": { "type": "boolean" }
+			}
+		},
+		"buildConcurrency": {
+			"type": "object", "additionalProperties": false,
+			"properties": {
+				"default": { "$ref": "#/definitions/concurrency" },
+				"total": { "$ref": "#/definitions/concurrency" },
+				"style": { "$ref": "#/definitions/concurrency" },
+				"scripts": { "$ref": "#/definitions/concurrency" },
+				"blocks": { "$ref": "#/definitions/concurrency" },
+				"images": { "$ref": "#/definitions/concurrency" },
+				"cache": { "$ref": "#/definitions/concurrency" },
+				"fonts": { "$ref": "#/definitions/concurrency" },
+				"php": { "$ref": "#/definitions/concurrency" },
+				"html": { "$ref": "#/definitions/concurrency" }
+			}
+		},
+		"php": {
+			"type": "object", "additionalProperties": false,
+			"properties": { "enabled": { "type": "boolean" } }
+		},
+		"port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+		"browsersync": {
+			"type": "object", "additionalProperties": false,
+			"properties": {
+				"localProxyURL": { "type": "string", "pattern": "^https?://[^/\\s]+" },
+				"watchEvents": {
+					"type": "array", "uniqueItems": true,
+					"items": { "enum": ["add", "change", "unlink", "addDir", "unlinkDir"] }
+				},
+				"open": { "anyOf": [{ "type": "boolean" }, { "type": "string" }] },
+				"tunnel": { "anyOf": [{ "type": "boolean" }, { "type": "string" }] },
+				"location": { "enum": ["start", "end"] }
+			}
+		}
+	}
+}
