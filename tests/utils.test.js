@@ -61,6 +61,18 @@ test('file discovery, directory creation and entry selection respect file types'
 	assert.equal(utils.slugify('  My   Block!  '), 'my-block');
 });
 
+test('WordPress project labels come from theme and plugin headers', async t => {
+	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-wp-project-'));
+	t.after(async () => { await fs.rm(root, { recursive: true, force: true }); });
+	await fs.writeFile(path.join(root, 'style.css'), '/*\nTheme Name: Example Theme\n*/');
+	assert.equal(await utils.getWordPressProjectLabel(root), 'Theme: Example Theme');
+	await fs.rm(path.join(root, 'style.css'));
+	await fs.writeFile(path.join(root, 'example-plugin.php'), '<?php\n/*\n * Plugin Name: Example Plugin\n */');
+	assert.equal(await utils.getWordPressProjectLabel(root), 'Plugin: Example Plugin');
+	await fs.rm(path.join(root, 'example-plugin.php'));
+	assert.equal(await utils.getWordPressProjectLabel(root), null);
+});
+
 test('concurrency configuration falls back for invalid limits and preserves iterator ordering', async t => {
 	const config = project.config;
 	t.after(() => { project.config = config; });

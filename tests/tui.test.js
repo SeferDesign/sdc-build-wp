@@ -141,18 +141,37 @@ test('Ink measures wrapped layout, reacts to resize, and restores terminal modes
 	assert.equal(stdout.listenerCount('resize'), 0);
 });
 
-test('WordPress version appears beside the tool version in the header without logging it', async t => {
-	const { dashboard, getOutput } = await createTerminal(t, { incrementalRendering: false });
+test('WordPress version appears beside the project name in wide headers without logging it', async t => {
+	const { dashboard, stdout, getOutput } = await createTerminal(t, { incrementalRendering: false });
+	stdout.columns = 100;
+	stdout.emit('resize');
 	const start = getOutput().length;
+	dashboard.setWordPressProjectLabel('Theme: SDC Test Theme');
 	dashboard.setWordPressVersion('7.1.3');
 	await settle();
 	const header = stripVTControlCharacters(getOutput().slice(start));
-	assert.match(header, /SDC Build WP v[\d.]+ \| WP v7\.1\.3/);
+	assert.match(header, /SDC Build WP v[\d.]+ \| Theme: SDC Test Theme \| WP v7\.1\.3/);
 	assert.doesNotMatch(dashboard.getLogHistory(), /WP v7\.1\.3/);
 	const beforeReset = getOutput().length;
 	dashboard.setWordPressVersion(null);
 	await settle();
 	assert.doesNotMatch(stripVTControlCharacters(getOutput().slice(beforeReset)), /WP v7\.1\.3/);
+	dashboard.setWordPressProjectLabel('Theme: SDC Test Theme');
+	assert.doesNotMatch(dashboard.getLogHistory(), /Theme: SDC Test Theme/);
+	await settle();
+});
+
+test('WordPress project name remains visible in compact headers while the WordPress version is hidden', async t => {
+	const { dashboard, stdout, getOutput } = await createTerminal(t, { incrementalRendering: false });
+	stdout.columns = 40;
+	stdout.emit('resize');
+	const start = getOutput().length;
+	dashboard.setWordPressProjectLabel('Theme: SDC Test Theme');
+	dashboard.setWordPressVersion('7.1.3');
+	await settle();
+	const compactHeader = stripVTControlCharacters(getOutput().slice(start));
+	assert.match(compactHeader, /Theme: SDC Test Theme/);
+	assert.doesNotMatch(compactHeader, /WP v7\.1\.3/);
 });
 
 test('PHP errors and warnings wrap instead of truncating long error_log payloads', async t => {
