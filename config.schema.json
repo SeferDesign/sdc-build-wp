@@ -18,6 +18,10 @@
 		"imagesPath": { "$ref": "#/definitions/path" },
 		"fontsPath": { "$ref": "#/definitions/path" },
 		"errorLogPath": { "type": ["string", "null"] },
+		"wordpressVersionCommand": {
+			"type": "string", "minLength": 1, "pattern": "\\S",
+			"description": "Trusted shell command run in the project directory when local WordPress version metadata is unavailable; stdout must contain only the version."
+		},
 		"styleGlobPath": { "$ref": "#/definitions/glob" },
 		"sassGlobPath": { "$ref": "#/definitions/glob" },
 		"scriptsGlobPath": { "$ref": "#/definitions/glob" },

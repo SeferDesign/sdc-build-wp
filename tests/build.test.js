@@ -12,10 +12,20 @@ const execFileAsync = promisify(execFile);
 const cli = fileURLToPath(new URL('../index.js', import.meta.url));
 const fixture = fileURLToPath(new URL('./fixtures/theme/', import.meta.url));
 
+async function copyFixture(root, options = {}) {
+	await fs.cp(fixture, root, { recursive: true, ...options });
+	await fs.mkdir(path.join(root, 'wp-includes'), { recursive: true });
+	await fs.writeFile(path.join(root, 'wp-includes/version.php'), '<?php\n$wp_version = "6.8";');
+	const schemaCacheDir = path.join(root, '.sdc-build-wp/cache/schemas');
+	await fs.mkdir(schemaCacheDir, { recursive: true });
+	await fs.writeFile(path.join(schemaCacheDir, 'wordpress-6.8-theme.json'), JSON.stringify({ type: 'object', required: ['version'], properties: { version: { type: 'integer' } } }));
+	await fs.writeFile(path.join(schemaCacheDir, 'wordpress-6.8-block.json'), JSON.stringify({ type: 'object', required: ['name', 'title'], properties: { name: { type: 'string' }, title: { type: 'string' } } }));
+}
+
 test('CLI exits nonzero when a component logs a build failure', async t => {
 	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-failure-'));
 	t.after(() => fs.rm(root, { recursive: true, force: true }));
-	await fs.cp(fixture, root, { recursive: true });
+	await copyFixture(root);
 	await fs.writeFile(path.join(root, '_src/style/main.scss'), '.broken { color: $missing; }');
 	await assert.rejects(execFileAsync(process.execPath, [cli, '--builds=style', '--no-cache'], {
 		cwd: root, timeout: 30000
@@ -28,12 +38,12 @@ test('CLI exits nonzero when a component logs a build failure', async t => {
 
 test('watch mode discovers entries and dependencies and rebuilds without the server component', { timeout: 30000 }, async t => {
 	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-watch-'));
-	await fs.cp(fixture, root, { recursive: true });
+	await copyFixture(root);
 	const configPath = path.join(root, '.sdc-build-wp/config.json');
 	const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
 	delete config.entries;
 	await fs.writeFile(configPath, JSON.stringify(config));
-	const child = spawn(process.execPath, [cli, '--builds=style,scripts', '--watch', '--no-cache'], {
+	const child = spawn(process.execPath, [cli, '--builds=style,scripts', '--watch'], {
 		cwd: root,
 		stdio: ['pipe', 'pipe', 'pipe'],
 		env: { ...process.env, NO_COLOR: '1', FORCE_COLOR: '0' }
@@ -61,7 +71,10 @@ test('watch mode discovers entries and dependencies and rebuilds without the ser
 			await new Promise(resolve => setTimeout(resolve, 25));
 		}
 	};
-	await waitFor(() => output.includes('Started watching [style, scripts]'));
+	await waitFor(() => output.includes('Started watching [cache, style, scripts]'));
+	const validationStart = output.indexOf('Validated 1 file');
+	assert.ok(validationStart > output.indexOf('Started initial build'), output);
+	assert.doesNotMatch(output, /using 6\.8 schemas/);
 	// Chokidar's initial scan must finish before changing a dependency.
 	await new Promise(resolve => setTimeout(resolve, 300));
 	const beforeChange = output.length;
@@ -100,8 +113,45 @@ test('watch mode discovers entries and dependencies and rebuilds without the ser
 	await waitFor(() => output.slice(beforeFailure).includes('Failed building'));
 	assert.equal(child.exitCode, null, output);
 	assert.equal(await fs.readFile(path.join(root, 'dist/scripts/main.min.js'), 'utf8'), lastGoodBundle);
+	await new Promise(resolve => setTimeout(resolve, 100));
 	await fs.writeFile(path.join(root, '_src/scripts/main.js'), 'export const recovered = "watch-recovered";');
 	await waitFor(() => contains('dist/scripts/main.min.js', 'watch-recovered'));
+	const themePath = path.join(root, 'theme.json');
+	const theme = JSON.parse(await fs.readFile(themePath, 'utf8'));
+	const beforeInvalidMetadata = output.length;
+	await fs.writeFile(themePath, JSON.stringify({ ...theme, version: 'invalid' }));
+	await waitFor(() => output.slice(beforeInvalidMetadata).includes('theme.json (/version)'));
+	assert.equal(child.exitCode, null, output);
+	const beforeMetadataRecovery = output.length;
+	await fs.writeFile(themePath, JSON.stringify(theme));
+	await waitFor(() => /Validated \/theme.json in \d+ms/.test(output.slice(beforeMetadataRecovery)));
+	assert.match(output.slice(beforeMetadataRecovery), /Validated \/theme.json/);
+	assert.doesNotMatch(output.slice(beforeInvalidMetadata), /using 6\.8 schemas/);
+	const beforeUnchangedSave = output.length;
+	await fs.writeFile(themePath, JSON.stringify(theme));
+	await waitFor(() => /Validated \/theme.json \(cached\) in \d+ms/.test(output.slice(beforeUnchangedSave)));
+	await fs.mkdir(path.join(root, 'styles'), { recursive: true });
+	const beforeMetadataBurst = output.length;
+	await Promise.all(['first', 'second'].map(name => fs.writeFile(path.join(root, `styles/${name}.json`), JSON.stringify({ version: 'invalid' }))));
+	await waitFor(() => output.slice(beforeMetadataBurst).includes('styles/first.json (/version)') && output.slice(beforeMetadataBurst).includes('styles/second.json (/version)'));
+	await waitFor(() => (output.slice(beforeMetadataBurst).match(/Failed validating \/styles\/\w+.json in \d+ms - see above error\./g) || []).length >= 2);
+	assert.doesNotMatch(output.slice(beforeMetadataBurst), /using 6\.8 schemas|theme.json \(\/version\)/);
+	const withReference = {
+		...theme,
+		settings: { ...theme.settings, custom: { ...theme.settings?.custom, validationAsset: 'file:./validation-assets/font.woff2' } }
+	};
+	const beforeReference = output.length;
+	await fs.writeFile(themePath, JSON.stringify(withReference));
+	await waitFor(() => /Failed validating \/theme.json/.test(output.slice(beforeReference)));
+	await fs.mkdir(path.join(root, 'validation-assets'));
+	const asset = path.join(root, 'validation-assets/font.woff2');
+	const beforeAssetCreation = output.length;
+	await fs.writeFile(asset, 'fixture font');
+	await waitFor(() => /Validated \/theme.json in \d+ms/.test(output.slice(beforeAssetCreation)));
+	assert.doesNotMatch(output.slice(beforeAssetCreation), /styles\/first.json|styles\/second.json/);
+	const beforeAssetRemoval = output.length;
+	await fs.rm(asset);
+	await waitFor(() => /Failed validating \/theme.json/.test(output.slice(beforeAssetRemoval)));
 	child.kill('SIGINT');
 	await waitFor(() => child.exitCode !== null);
 	assert.deepEqual(await exited, { code: 0, signal: null });
@@ -110,7 +160,7 @@ test('watch mode discovers entries and dependencies and rebuilds without the ser
 test('test theme builds through the CLI, reuses cache, and rebuilds changed or missing outputs', { timeout: 120000 }, async t => {
 	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-theme-'));
 	t.after(() => fs.rm(root, { recursive: true, force: true }));
-	await fs.cp(fixture, root, {
+	await copyFixture(root, {
 		recursive: true,
 		filter: source => ![
 			'dist',
@@ -189,7 +239,7 @@ test('CLI rejects invalid input and failed writes without reporting success', as
 		await t.test(scenario.name, async t => {
 			const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-cli-error-'));
 			t.after(() => fs.rm(root, { recursive: true, force: true }));
-			await fs.cp(fixture, root, { recursive: true });
+			await copyFixture(root);
 			await scenario.prepare(root);
 			await assert.rejects(execFileAsync(process.execPath, [cli, `--builds=${scenario.builds}`, '--no-cache'], {
 				cwd: root, timeout: 30000
@@ -206,7 +256,7 @@ test('CLI rejects invalid input and failed writes without reporting success', as
 test('CLI compiles a real WordPress block with metadata and dependency output', { timeout: 60000 }, async t => {
 	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-cli-block-'));
 	t.after(() => fs.rm(root, { recursive: true, force: true }));
-	await fs.cp(fixture, root, { recursive: true });
+	await copyFixture(root);
 	await fs.writeFile(path.join(root, 'package.json'), JSON.stringify({ name: 'fixture-theme', private: true, browserslist: ['defaults'] }));
 	const source = path.join(root, 'blocks/example/src');
 	await fs.mkdir(source, { recursive: true });

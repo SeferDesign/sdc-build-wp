@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import project from '../lib/project.js';
 import { validateConfig, getDefaultConfig, mergeWithDefaults } from '../lib/config-validator.js';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 
 test('config accepts defaults and typed overrides without mutating defaults', () => {
 	assert.ok(project);
@@ -69,5 +71,22 @@ test('schema validates all supported configuration fields and rejects malformed 
 		{ entries: { main: [42] } }, { php: null }, { port: 65536 },
 		{ browsersync: { localProxyURL: 'example.loc' } }]) {
 		assert.equal(validateConfig(config), false, JSON.stringify(config));
+	}
+});
+
+test('custom version and help options do not trigger the yargs reserved-word warning', async () => {
+	const cli = new URL('../index.js', import.meta.url).pathname;
+	for (const option of ['--version', '-v', '--help']) {
+		const { stdout, stderr } = await promisify(execFile)(process.execPath, [cli, option], {
+			cwd: project.path,
+			timeout: 15000,
+			env: { ...process.env, NO_COLOR: '1', FORCE_COLOR: '0' }
+		});
+		assert.doesNotMatch(stderr, /reserved word|yargs\.version/);
+		if (option === '--help') {
+			assert.match(stdout, /SDC Build WP/);
+		} else {
+			assert.ok(stdout.split(/\r?\n/).includes(project.version), stdout);
+		}
 	}
 });
