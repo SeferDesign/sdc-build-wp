@@ -228,15 +228,13 @@ test('validation configuration cannot disable checks or override the detected in
 	}
 });
 
-test('normal builds fail clearly when WordPress cannot be detected', async t => {
+test('normal builds continue when WordPress cannot be detected', async t => {
 	const { root, write } = await setup(t);
 	await write('package.json', { name: 'fixture-validation' });
 	const cli = new URL('../index.js', import.meta.url).pathname;
-	await assert.rejects(promisify(execFile)(process.execPath, [cli, '--builds=scripts'], { cwd: root, timeout: 15000 }), error => {
-		assert.equal(error.code, 1);
-		assert.match(error.stderr, /Cannot detect WordPress/);
-		return true;
-	});
+	const build = await promisify(execFile)(process.execPath, [cli, '--builds=scripts'], { cwd: root, timeout: 15000 });
+	assert.match(build.stdout + build.stderr, /Skipping WordPress validation: Cannot detect WordPress/);
+	assert.doesNotMatch(build.stdout + build.stderr, /Failed starting validation|Failed validating/);
 });
 
 test('clearing the cache removes schemas before the next build downloads them again', async t => {
@@ -305,7 +303,7 @@ test('custom command failures and noisy output produce actionable errors', async
 	await assert.rejects(detectWordPressVersion({ root, wordpressVersionCommand: `"${process.execPath}" -e 'console.log("WordPress 6.8.3")'` }), /must print only a WordPress version/);
 });
 
-test('normal builds use proxy metadata or per-project commands without local version files', async t => {
+test('normal builds use proxy metadata or per-project commands and skip validation without a version', async t => {
 	const { root, write } = await setup(t);
 	let exposeVersion = true;
 	const server = createServer((request, response) => {
@@ -325,11 +323,11 @@ test('normal builds use proxy metadata or per-project commands without local ver
 	assert.match(proxyBuild.stdout, /Validated 1 file/);
 	assert.doesNotMatch(proxyBuild.stdout, /localProxyURL generator metadata/);
 	exposeVersion = false;
-	await assert.rejects(build(), error => {
-		assert.equal(error.code, 1);
-		assert.match(error.stderr, /wordpressVersionCommand/);
-		return true;
-	});
+	await write('theme.json', { version: 'invalid' });
+	const skippedBuild = await build();
+	assert.match(skippedBuild.stdout + skippedBuild.stderr, /Skipping WordPress validation: Cannot detect WordPress/);
+	assert.doesNotMatch(skippedBuild.stdout + skippedBuild.stderr, /Failed validating|Failed starting validation/);
+	await write('theme.json', { version: 3 });
 	await write('version.txt', '6.8.3');
 	await write('.sdc-build-wp/config.json', {
 		browsersync: { localProxyURL },
@@ -541,15 +539,17 @@ test('filesystem inspection failures become per-file diagnostics and other metad
 	assert.equal(result.context.validationCache.has(path.join(root, 'styles/card.json')), true);
 });
 
-test('version detection failures say validation could not start instead of reporting zero failed files', async t => {
+test('version detection failures skip validation without an error', async t => {
 	const { root } = await setup(t);
 	const result = await validateWordPress({ root });
-	assert.equal(result.setupFailed, true);
+	assert.equal(result.skipped, true);
+	assert.match(result.skipReason, /Cannot detect WordPress/);
+	assert.deepEqual(result.diagnostics, []);
+	assert.deepEqual(result.files, []);
 	const logs = [];
 	logValidation(result, (type, message) => logs.push({ type, message }));
-	assert.equal(logs.at(-1).type, 'error');
-	assert.match(logs.at(-1).message, /^Failed starting validation in \d+ms - see above error\.$/);
-	assert.doesNotMatch(logs.at(-1).message, /0 files/);
+	assert.equal(logs.at(-1).type, 'warn');
+	assert.match(logs.at(-1).message, /^Skipping WordPress validation: Cannot detect WordPress/);
 });
 
 test('asset changes revalidate only owning metadata and paused deletions update the block index', async t => {
