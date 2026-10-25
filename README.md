@@ -73,6 +73,13 @@ While watch is enabled, use the following keyboard commands to control the build
 
 ## Develop
 
+Run `sdc-build-wp --doctor` (or `sdc-build-wp doctor`) to diagnose configuration,
+Node/PHP availability, PHP formatting tools, source and entry paths, output
+permissions, proxy connectivity, port availability, and configured TLS files.
+Use `--builds=style,scripts` to limit component-specific checks. Diagnostics do
+not build assets, migrate legacy settings, or create cache files. Errors exit
+with status `1`; optional missing source directories produce warnings.
+
 Develop locally with the following command from within the test project directory:
 
 ```
