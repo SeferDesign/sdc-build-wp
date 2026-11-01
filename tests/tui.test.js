@@ -269,13 +269,17 @@ test('second header row and feed top border hide below 16 terminal rows and retu
 	assert.match(frame, /r restart, p pause, n new, q quit/);
 });
 
-test('mouse reports stay out of prompts and scroll through Ink input', async t => {
+test('mouse reports stay out of prompts and scroll through stdin', async t => {
 	const { stdin, dashboard } = await createTerminal(t);
 	for (let index = 0; index < 40; index++) {
 		dashboard.log(`line-${index}`);
 	}
 	await settle();
-	stdin.write('\x1b[<64;5;5M');
+	stdin.write('\x1b[');
+	await settle();
+	stdin.write('<64;5;');
+	await settle();
+	stdin.write('5M');
 	await settle();
 	assert.equal(dashboard._logScrollOffset, 3);
 	const prompt = dashboard.showInput('Name:');
@@ -286,6 +290,9 @@ test('mouse reports stay out of prompts and scroll through Ink input', async t =
 	stdin.write('\x1b');
 	await settle();
 	assert.equal(await prompt, null);
+	stdin.write('\x1b[<0;5;5M');
+	await settle();
+	assert.equal(dashboard.isMouseEnabled, false);
 });
 
 test('loading animation advances and stops when initial loading finishes', async t => {
