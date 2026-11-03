@@ -132,6 +132,29 @@ test('block batch compilation caches only successful builds and reports compiler
 	assert.ok(logs.some(entry => /Built 1\/2 blocks/.test(entry.message)));
 });
 
+test('block batch preflight checks independent blocks concurrently', async t => {
+	const { root, component } = await setup(t);
+	const first = await makeBlock(root, 'first');
+	const second = await makeBlock(root, 'second');
+	component.utils = { ...component.utils, getComponentConcurrency: () => 2 };
+	t.mock.method(component, 'getBlockDependencies', async () => []);
+	let active = 0;
+	let maximum = 0;
+	t.mock.method(component, 'shouldSkipBuild', async () => {
+		active++;
+		maximum = Math.max(maximum, active);
+		await new Promise(resolve => setTimeout(resolve, 5));
+		active--;
+		return true;
+	});
+	t.mock.method(component, 'buildOutputExists', async () => true);
+	const end = t.mock.method(component, 'end', () => {});
+
+	await component.buildAll([first, second]);
+	assert.equal(maximum, 2);
+	assert.equal(end.mock.calls.length, 2);
+});
+
 test('block config resolution and compiler failures never populate the cache', async t => {
 	const { root, component, logs } = await setup(t);
 	const entry = await makeBlock(root, 'broken');
