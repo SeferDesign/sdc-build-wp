@@ -111,6 +111,35 @@ test('dependency hashing is parallel, bounded, and deduplicated', async t => {
 	assert.equal(reads, 11);
 });
 
+test('cache updates and checks hash inputs alongside dependencies', async t => {
+	const cache = await createCache(t);
+	const input = path.join(cache.cacheDir, 'input.js');
+	const output = path.join(cache.cacheDir, 'output.js');
+	const dependency = path.join(cache.cacheDir, 'dependency.js');
+	await Promise.all([
+		fs.writeFile(input, 'input'),
+		fs.writeFile(output, 'output'),
+		fs.writeFile(dependency, 'dependency')
+	]);
+	let active = 0;
+	let maximum = 0;
+	t.mock.method(cache, 'readFileHash', async file => {
+		active++;
+		maximum = Math.max(maximum, active);
+		await new Promise(resolve => setTimeout(resolve, 5));
+		active--;
+		return `hash:${file}`;
+	});
+
+	await cache.updateCache(input, output, [dependency]);
+	assert.equal(maximum, 2);
+	cache.clearHashCache([input, dependency]);
+	active = 0;
+	maximum = 0;
+	assert.equal(await cache.needsRebuild(input, output, [dependency]), false);
+	assert.equal(maximum, 2);
+});
+
 test('invalidating a pending hash prevents stale reads from repopulating the cache', async t => {
 	const cache = await createCache(t);
 	let release;

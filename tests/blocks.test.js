@@ -94,6 +94,26 @@ test('cached blocks require existing output and missing block metadata fails exp
 	assert.equal(logs.filter(entry => /no block.json found/.test(entry.message)).length, 4);
 });
 
+test('single block cache preflight checks cache and output concurrently', async t => {
+	const { root, component } = await setup(t);
+	const entry = await makeBlock(root, 'cached');
+	let active = 0;
+	let maximum = 0;
+	const check = async result => {
+		active++;
+		maximum = Math.max(maximum, active);
+		await new Promise(resolve => setTimeout(resolve, 5));
+		active--;
+		return result;
+	};
+	t.mock.method(component, 'shouldSkipBuild', () => check(true));
+	t.mock.method(component, 'buildOutputExists', () => check(true));
+	t.mock.method(component, 'end', () => {});
+
+	assert.equal(await component.build(entry), true);
+	assert.equal(maximum, 2);
+});
+
 test('single block builds use the package WordPress Scripts dependency without theme node_modules', async t => {
 	const { root, component, logs } = await setup(t);
 	const entry = await makeBlock(root, 'standalone');
