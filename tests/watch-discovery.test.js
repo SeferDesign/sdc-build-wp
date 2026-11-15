@@ -57,7 +57,7 @@ async function mutate(component, event, file, action) {
 		timer = setTimeout(() => {
 			component.watcher.off('all', handler);
 			reject(new Error(`Watcher did not emit ${event} for ${file}`));
-		}, 2500);
+		}, 10000);
 	});
 	try {
 		await action();

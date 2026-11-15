@@ -15,6 +15,13 @@ import { validateCreation, getCreationDestination } from '../lib/creation.js';
 
 const settle = () => new Promise(resolve => setTimeout(resolve, 80));
 
+const waitFor = async (condition, timeout = 5000) => {
+	const start = Date.now();
+	while (!condition() && Date.now() - start < timeout) {
+		await new Promise(resolve => setTimeout(resolve, 10));
+	}
+};
+
 async function createTerminal(t, { incrementalRendering = true } = {}) {
 	const stdin = new PassThrough();
 	stdin.isTTY = true;
@@ -99,7 +106,7 @@ test('Ink separates pasted names from commands and supports Backspace, Delete, a
 });
 
 test('Ink measures wrapped layout, reacts to resize, and restores terminal modes', async t => {
-	const { dashboard, stdout, stdin, getOutput } = await createTerminal(t);
+	const { dashboard, stdout, stdin, getOutput, getFocus } = await createTerminal(t);
 	const visibleRows = [];
 	const originalGetVisibleLogEntries = dashboard.getVisibleLogEntries.bind(dashboard);
 	t.mock.method(dashboard, 'getVisibleLogEntries', rows => {
@@ -122,9 +129,12 @@ test('Ink measures wrapped layout, reacts to resize, and restores terminal modes
 	assert.ok(visibleRows.at(-1) < wideRows);
 	assert.ok(visibleRows.at(-1) >= 0 && visibleRows.at(-1) < stdout.rows);
 	const prompt = dashboard.showMenu(['Block', 'Pattern', 'Cancel'], 'Create:');
+	// Input sent before focus reaches the prompt panel is routed to the
+	// previous handler, so wait for the transfer before pressing keys.
+	await waitFor(() => getFocus() === 'prompt');
 	await settle();
 	stdin.write('\x1b[B');
-	await settle();
+	await waitFor(() => dashboard._activePrompt.selectedIndex === 1);
 	assert.equal(dashboard._activePrompt.selectedIndex, 1);
 	stdin.write('\r');
 	await settle();
