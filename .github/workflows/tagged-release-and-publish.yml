@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: '24'
+          node-version-file: '.node-version'
       - run: npm ci
       - uses: shivammathur/setup-php@v2
         with:
@@ -71,7 +71,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: '24'
+          node-version-file: '.node-version'
           registry-url: 'https://registry.npmjs.org'
       - name: Update npm
         run: npm install -g npm@latest
