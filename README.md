@@ -84,6 +84,26 @@ component names are also rejected before building.
 }
 ```
 
+## Blocks
+
+Every block build, whether the initial batch, a watch rebuild or a newly created
+block, runs through one pipeline: cache preflight, an in-process
+`@wordpress/scripts` webpack compile, then caching of successful builds. A failed
+or timed-out block is reported on its own and never fails the others. Alongside
+the source files it scans, each build records the project files webpack actually
+read, so shared imports from `_src` trigger rebuilds of the blocks that use them.
+
+Each block's compile is limited to 60 seconds (waiting for a build slot does not
+count). Raise it for large blocks:
+
+```json
+{
+	"blocks": {
+		"timeout": 120
+	}
+}
+```
+
 ## WordPress Validation
 
 Source theme and block validation runs automatically before every build and

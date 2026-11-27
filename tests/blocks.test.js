@@ -125,7 +125,11 @@ test('single block builds use the package WordPress Scripts dependency without t
 	t.mock.method(component, 'shouldSkipBuild', async () => false);
 	const update = t.mock.method(component, 'updateBuildCache', async () => {});
 	await assert.rejects(fs.stat(path.join(root, 'node_modules')), { code: 'ENOENT' });
-	await component.build(entry);
+	// WordPress Scripts resolves its source path from the working directory, which is the project in real runs.
+	const originalCwd = process.cwd();
+	process.chdir(root);
+	t.after(() => process.chdir(originalCwd));
+	assert.equal(await component.build(entry), true);
 	assert.deepEqual(logs.filter(log => log.type === 'error'), [], JSON.stringify(logs));
 	assert.ok((await fs.stat(path.join(entry, 'build/index.js'))).isFile());
 	assert.equal(update.mock.calls.length, 1);
@@ -186,7 +190,8 @@ test('block config resolution and compiler failures never populate the cache', a
 	t.mock.method(component, 'resolveBlockWebpackConfig', () => ({}));
 	t.mock.method(component, 'runWebpackConfigs', async () => { throw new Error('compiler failed'); });
 	await component.buildAll([entry]);
-	assert.ok(logs.some(log => /Failed building blocks/.test(log.message)));
+	assert.ok(logs.some(log => /compiler failed/.test(log.message)));
+	assert.ok(logs.some(log => log.type === 'error' && /Failed building .*broken block/.test(log.message)));
 	assert.equal(update.mock.calls.length, 0);
 	await component.buildAll([]);
 });

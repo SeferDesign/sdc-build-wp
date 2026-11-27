@@ -76,6 +76,11 @@
 			"type": "object", "additionalProperties": false,
 			"properties": { "enabled": { "type": "boolean" } }
 		},
+		"blocks": {
+			"type": "object", "additionalProperties": false,
+			"description": "Block build settings. timeout is the per-block compile limit in seconds (default 60).",
+			"properties": { "timeout": { "type": "integer", "minimum": 1 } }
+		},
 		"validation": {
 			"type": "object", "additionalProperties": false,
 			"description": "WordPress theme and block metadata validation. failOn \"never\" reports problems as warnings instead of failing the build.",

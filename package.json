@@ -33,7 +33,6 @@
 		"index.js",
 		"lib/",
 		"vendor/",
-		"webpack.config.js",
 		"eslint.config.js",
 		"config.schema.json",
 		".stylelintrc.json",
