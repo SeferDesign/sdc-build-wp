@@ -8,6 +8,18 @@ import ErrorsComponent from '../lib/components/errors.js';
 import ServerComponent from '../lib/components/server.js';
 import { withProject } from './helpers/index.js';
 
+// A developer machine may export TLS paths for the dev server; tests must not depend on that.
+function withoutTlsEnvironment(t) {
+	const saved = { SSL_KEY_PATH: process.env.SSL_KEY_PATH, SSL_CRT_PATH: process.env.SSL_CRT_PATH };
+	delete process.env.SSL_KEY_PATH;
+	delete process.env.SSL_CRT_PATH;
+	t.after(() => {
+		for (const [name, value] of Object.entries(saved)) {
+			if (value === undefined) { delete process.env[name]; } else { process.env[name] = value; }
+		}
+	});
+}
+
 async function waitFor(predicate, message) {
 	const deadline = Date.now() + 8000;
 	while (!predicate()) {
@@ -122,6 +134,7 @@ test('the dev server is configured from the project and starts without crashing 
 });
 
 test('the default snippet location injects scripts right after the opening body tag', async t => {
+	withoutTlsEnvironment(t);
 	await withProject(t, { config: { browsersync: { localProxyURL: 'http://site.test' }, php: { enabled: true } } });
 	const component = new ServerComponent();
 	component.log = () => {};

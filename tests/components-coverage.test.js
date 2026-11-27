@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import readline from 'node:readline/promises';
 import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { promisify, stripVTControlCharacters } from 'node:util';
 import project from '../lib/project.js';
 import * as utils from '../lib/utils.js';
 import log from '../lib/logging.js';
@@ -284,9 +284,11 @@ test('log output is classified, collected for summaries and can be redirected to
 	log('warn', 'careful');
 	log('error', 'broken');
 	assert.equal(out.length, 3);
-	assert.match(out[0], /PHP:\s+from php/);
-	assert.match(out[1], /hello/);
-	assert.match(out[2], /done/);
+	// Terminals add color codes; the text must match either way.
+	const plain = out.map(line => stripVTControlCharacters(line));
+	assert.match(plain[0], /PHP:\s+from php/);
+	assert.match(plain[1], /hello/);
+	assert.match(plain[2], /done/);
 	assert.deepEqual(err.map(([type]) => type), ['warn', 'error']);
 	assert.deepEqual(project.buildWarnings, [{ component: null, message: 'careful' }]);
 	assert.deepEqual(project.buildErrors, [{ component: null, message: 'broken' }]);
@@ -296,7 +298,7 @@ test('log output is classified, collected for summaries and can be redirected to
 	err.length = 0;
 	log('info', 'to stderr');
 	assert.deepEqual(out, []);
-	assert.match(err[0][1], /to stderr/);
+	assert.match(stripVTControlCharacters(err[0][1]), /to stderr/);
 	assert.equal(err[0][0], 'error', 'JSON mode sends every level to stderr');
 
 	let notified;
