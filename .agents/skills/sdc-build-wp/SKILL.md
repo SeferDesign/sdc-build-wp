@@ -18,7 +18,8 @@ project. The project uses the sdc-build-wp build system.
   block `build/` directories; they are regenerated.
 - Build configuration lives in `.sdc-build-wp/config.json`. For build
   commands, watch-mode keys, and troubleshooting, see
-  `node_modules/sdc-build-wp/README.md` or run `sdc-build-wp --help`.
+  `node_modules/sdc-build-wp/README.md` and the guides in
+  `node_modules/sdc-build-wp/docs/`, or run `sdc-build-wp --help`.
 
 ## PHP
 

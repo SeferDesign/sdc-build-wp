@@ -1,10 +1,10 @@
 # Agents Instructions
 
-This document serves as a guide to leveraging agents for working within the `sdc-build-wp` repo. See `README.md` for more information about this package. Below are the essential instructions and guidelines:
+This document serves as a guide to leveraging agents for working within the `sdc-build-wp` repo. See `README.md` for an overview and the guides in `docs/` for details. Below are the essential instructions and guidelines:
 
 ## Watch Commands
 
-Whenever a new watch command is added, be sure to add it to the README, the `lib/help.js` file, and the log that outputs the available commands.
+Whenever a new watch command is added, be sure to add it to `docs/watch.md`, the `lib/help.js` file, and the log that outputs the available commands.
 
 ## Code Standards
 
