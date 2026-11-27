@@ -237,6 +237,12 @@ While watch is enabled, use the following keyboard commands to control the build
 [q]     Quit
 ````
 
+`SIGINT`, `SIGTERM` and `SIGHUP` (for example a closed terminal, `kill`, or a process
+supervisor) all stop watchers, flush the cache manifest and restore the terminal
+before exiting. `SIGTERM` and `SIGHUP` exit with the conventional status `143` and
+`129`; a second signal exits immediately, and a shutdown that hangs is cut off after
+five seconds.
+
 ## AI Agents
 
 This package ships an [Agent Skill](https://agentskills.io) at
