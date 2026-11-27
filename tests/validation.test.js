@@ -220,10 +220,13 @@ test('removed validation commands and flags are rejected', async t => {
 	assert.doesNotMatch(stdout, /--validate|--built|--wordpress-version|--wordpress-path|--refresh-schemas/);
 });
 
-test('validation configuration cannot disable checks or override the detected installation', () => {
+test('validation configuration can relax checks but cannot override the detected installation', () => {
 	const validate = new Ajv().compile(configSchema);
 	assert.equal(validate({}), true);
-	for (const validation of [{ schemaCacheDir: 'cache/schemas' }, { enabled: false }, { wordpressVersion: '6.8' }, { wordpressPath: '..' }, { refreshSchemas: true }, { phase: 'built' }]) {
+	for (const validation of [{ enabled: false }, { failOn: 'never' }]) {
+		assert.equal(validate({ validation }), true, JSON.stringify(validation));
+	}
+	for (const validation of [{ schemaCacheDir: 'cache/schemas' }, { wordpressVersion: '6.8' }, { wordpressPath: '..' }, { refreshSchemas: true }, { phase: 'built' }]) {
 		assert.equal(validate({ validation }), false, JSON.stringify(validation));
 	}
 });

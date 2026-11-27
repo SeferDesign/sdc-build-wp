@@ -60,8 +60,29 @@ component names are also rejected before building.
 ## WordPress Validation
 
 Source theme and block validation runs automatically before every build and
-when source metadata changes in watch mode. It cannot be disabled and has no
-standalone command, version/path override, compiled-output mode, or refresh flag.
+when source metadata changes in watch mode. By default it has no standalone
+command, version/path override, compiled-output mode, or refresh flag.
+
+For CI or offline machines where WordPress or the schema service is unavailable,
+validation can be relaxed without hiding it from normal local builds:
+
+```sh
+sdc-build-wp --skip-validation   # skip for this run; no version detection or schema download
+```
+
+```json
+{
+	"validation": {
+		"enabled": true,
+		"failOn": "never"
+	}
+}
+```
+
+`validation.enabled: false` skips validation entirely, like the flag, and
+`validation.failOn: "never"` still runs it but reports every problem (including
+schema download failures) as warnings so the build continues and exits normally.
+The default is `{ "enabled": true, "failOn": "error" }`.
 Validation reads the nearest ancestor `wp-includes/version.php` without running
 PHP or bootstrapping WordPress. Symlinked themes also search their real path.
 When local version metadata is missing or inaccessible, detection falls back to

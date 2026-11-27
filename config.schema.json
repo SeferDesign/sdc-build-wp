@@ -76,6 +76,14 @@
 			"type": "object", "additionalProperties": false,
 			"properties": { "enabled": { "type": "boolean" } }
 		},
+		"validation": {
+			"type": "object", "additionalProperties": false,
+			"description": "WordPress theme and block metadata validation. failOn \"never\" reports problems as warnings instead of failing the build.",
+			"properties": {
+				"enabled": { "type": "boolean" },
+				"failOn": { "enum": ["error", "never"] }
+			}
+		},
 		"port": { "type": "integer", "minimum": 1, "maximum": 65535 },
 		"browsersync": {
 			"type": "object", "additionalProperties": false,
