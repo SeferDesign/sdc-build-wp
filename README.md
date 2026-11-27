@@ -16,6 +16,8 @@ Cache manifest updates are batched during the initial build and coalesced over 1
 
 Script dependency graphs are refreshed after lint fixes, once per processed entry, and reused for cache checks. Watch rebuilds refresh only affected entries when the changed file is already in the graph.
 
+Sass dependency tracking follows nested `@use`, `@forward` and `@import` statements (including comma lists, partials and `index` files). Script tracking follows static, side-effect and re-export imports, dynamic `import()` and `require()`. Optimized images are cached too. The manifest is tied to the build environment, so switching between development and `NODE_ENV=production` discards cached entries instead of reusing the other mode's output.
+
 Dependency hashes are read concurrently, with duplicate in-flight reads shared across entries. `buildConcurrency.cache` controls the number of concurrent dependency checks per entry (default: 8). These lightweight reads do not consume compilation slots.
 
 ```sh

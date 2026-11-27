@@ -55,7 +55,10 @@ test('file discovery, directory creation and entry selection respect file types'
 	assert.deepEqual(await utils.getAllSubdirectories(root), [path.join(root, 'nested'), path.join(root, 'nested/deeper')]);
 	assert.deepEqual(utils.addEntriesByFiletypes(['.js']), [{ name: 'scripts/main', file: path.join(root, 'main.js') }]);
 	assert.deepEqual(await utils.getImportedSASSFiles(path.join(root, 'main.scss')), [
-		path.join(root, 'nested/tokens.scss'), path.join(root, 'nested/_tokens.scss'), path.join(root, 'other.scss')
+		...['nested/tokens', 'other'].flatMap(name => {
+			const directory = path.dirname(name);
+			return [`${name}.scss`, path.join(directory, `_${path.basename(name)}.scss`), `${name}/index.scss`, `${name}/_index.scss`];
+		}).map(file => path.join(root, file))
 	]);
 	assert.equal(utils.camelToDash('fontSizeBase'), 'font-size-base');
 	assert.equal(utils.slugify('  My   Block!  '), 'my-block');

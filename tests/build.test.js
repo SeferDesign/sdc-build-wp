@@ -192,9 +192,11 @@ test('test theme builds through the CLI, reuses cache, and rebuilds changed or m
 	assert.match(await read('_src/style/partials/_theme.scss'), /\$brand: #123456/);
 	assert.match(await read('dist/images/icon.svg'), /<svg/);
 	const manifest = JSON.parse(await read('.sdc-build-wp/cache/manifest.json'));
-	assert.equal(Object.keys(manifest.entries).length, 2);
+	assert.equal(Object.keys(manifest.entries).length, 3); // style, scripts and the optimized image
 	for (const entry of Object.values(manifest.entries)) {
-		assert.ok(Object.keys(entry.dependencies).length > 0);
+		if (!entry.inputFile.endsWith('.svg')) {
+			assert.ok(Object.keys(entry.dependencies).length > 0);
+		}
 	}
 	const initialCSS = await fs.stat(cssPath);
 	const initialScript = await fs.stat(scriptPath);

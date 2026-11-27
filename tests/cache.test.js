@@ -215,9 +215,28 @@ test('manifest loading rejects old versions and malformed data and retains valid
 		assert.equal(cache.manifest.version, 'current');
 		assert.deepEqual(cache.manifest.entries, {});
 	}
-	await fs.writeFile(cache.manifestPath, JSON.stringify({ version: 'current', entries: { retained: { timestamp: 1 } } }));
+	await fs.writeFile(cache.manifestPath, JSON.stringify({ version: 'current', environment: cache.getEnvironment(), entries: { retained: { timestamp: 1 } } }));
 	await cache.loadManifest();
 	assert.equal(cache.manifest.entries.retained.timestamp, 1);
+});
+
+test('manifests from another build environment are discarded and valid entries stay fresh', async t => {
+	const cache = await createCache(t);
+	t.mock.method(cache, 'getPackageVersion', async () => 'current');
+	const otherEnvironment = cache.getEnvironment() === 'production' ? 'development' : 'production';
+	await fs.writeFile(cache.manifestPath, JSON.stringify({ version: 'current', environment: otherEnvironment, entries: { retained: { timestamp: 1 } } }));
+	await cache.loadManifest();
+	assert.deepEqual(cache.manifest.entries, {});
+	assert.equal(cache.manifest.environment, cache.getEnvironment());
+
+	const input = path.join(cache.cacheDir, 'input.js');
+	const output = path.join(cache.cacheDir, 'output.js');
+	await Promise.all([fs.writeFile(input, 'source'), fs.writeFile(output, 'built')]);
+	await cache.updateCache(input, output);
+	const entry = cache.manifest.entries[cache.getCacheKey(input, output)];
+	entry.timestamp = Date.now() - 6 * 86400000;
+	assert.equal(await cache.needsRebuild(input, output), false);
+	assert.ok(Date.now() - entry.timestamp < 1000, 'a cache hit refreshes the entry timestamp');
 });
 
 test('cache removes expired and missing entries but retains fresh files', async t => {
