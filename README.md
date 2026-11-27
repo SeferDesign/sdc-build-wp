@@ -27,6 +27,33 @@ sdc-build-wp --no-cache        # Disable caching for this build
 sdc-build-wp --clear-cache     # Clear all cached data
 ```
 
+## Production and CI builds
+
+```sh
+sdc-build-wp --production         # NODE_ENV=production: no source maps, production block builds
+sdc-build-wp --ci                 # --production plus strict checks for pipelines
+sdc-build-wp --ci --json          # machine-readable result on stdout
+```
+
+`--production` sets `NODE_ENV=production` for the whole run, so output never
+reuses cached development files (the cache is keyed by environment) and no
+source maps are written.
+
+`--ci` implies `--production` and makes the run safe for pipelines. Style and
+script lint only check, never rewriting sources. Lint issues that would have been
+auto-fixed, and any other warning (for example an undetectable WordPress version,
+which `--skip-validation` or `wordpressVersionCommand` resolves), exit with status
+`1`. Unfixable Stylelint errors fail every one-shot build, matching script lint
+errors. `--ci` and `--json` run a single build and cannot be combined with `--watch`.
+
+`--json` keeps stdout for one JSON document and writes all log output to stderr:
+
+```json
+{ "success": true, "version": "5.13.0", "durationMs": 1840, "components": ["cache", "style", "scripts"], "errors": [], "warnings": [] }
+```
+
+`errors` and `warnings` list `{ "component", "message" }` objects without terminal colors.
+
 ## Configuration
 
 One-shot builds exit with status `1` when a component reports an error, including
