@@ -14,44 +14,9 @@ import ErrorsComponent from '../lib/components/errors.js';
 import ServerComponent from '../lib/components/server.js';
 import BlocksComponent from '../lib/components/blocks.js';
 import PHPComponent from '../lib/components/php.js';
+import { makeTheme, run, withProject } from './helpers/index.js';
 
 const execFileAsync = promisify(execFile);
-const cli = fileURLToPath(new URL('../index.js', import.meta.url));
-const fixture = fileURLToPath(new URL('./fixtures/theme/', import.meta.url));
-
-async function makeTheme(t) {
-	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-regression-'));
-	t.after(() => fs.rm(root, { recursive: true, force: true }));
-	await fs.cp(fixture, root, {
-		recursive: true,
-		filter: source => !['dist', path.join('.sdc-build-wp', 'cache'), path.join('_src', 'style', 'partials', '_theme.scss')]
-			.includes(path.relative(fixture, source))
-	});
-	return root;
-}
-
-async function run(cwd, args, env = {}) {
-	try {
-		const { stdout, stderr } = await execFileAsync(process.execPath, [cli, ...args], {
-			cwd, timeout: 30000, env: { ...process.env, NODE_ENV: 'development', NO_COLOR: '1', FORCE_COLOR: '0', ...env }
-		});
-		return { code: 0, output: stdout + stderr };
-	} catch (error) {
-		return { code: error.code, output: `${error.stdout}${error.stderr}` };
-	}
-}
-
-async function withProject(t, changes = {}) {
-	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-regression-component-'));
-	const original = { path: project.path, paths: project.paths, config: project.config, components: project.components };
-	Object.assign(project, { path: root, components: {}, ...changes });
-	project.paths = { ...original.paths, dist: 'dist', images: path.join(root, '_src/images'), ...changes.paths };
-	t.after(async () => {
-		Object.assign(project, original);
-		await fs.rm(root, { recursive: true, force: true });
-	});
-	return root;
-}
 
 test('Sass dependencies include nested partials, forwards, comma lists and index files', async t => {
 	const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sdc-sass-deps-'));

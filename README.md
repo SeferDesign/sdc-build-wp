@@ -18,6 +18,8 @@ Script dependency graphs are refreshed after lint fixes, once per processed entr
 
 Sass dependency tracking follows nested `@use`, `@forward` and `@import` statements (including comma lists, partials and `index` files). Script tracking follows static, side-effect and re-export imports, dynamic `import()` and `require()`. Optimized images are cached too. The manifest is tied to the build environment, so switching between development and `NODE_ENV=production` discards cached entries instead of reusing the other mode's output.
 
+The import scanner only predicts dependencies, so each successful build also records the files the compiler reports it actually loaded (Sass `loadedUrls`, esbuild's metafile). This covers `meta.load-css()`, bundled `node_modules` packages and aliased paths, and those files feed watch-mode rebuilds as well as cache checks.
+
 Dependency hashes are read concurrently, with duplicate in-flight reads shared across entries. `buildConcurrency.cache` controls the number of concurrent dependency checks per entry (default: 8). These lightweight reads do not consume compilation slots.
 
 ```sh
