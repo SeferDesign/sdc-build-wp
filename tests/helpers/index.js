@@ -2,7 +2,7 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 import project from '../../lib/project.js';
 
@@ -59,4 +59,39 @@ export async function withProject(t, changes = {}) {
 		await fs.rm(root, { recursive: true, force: true });
 	});
 	return root;
+}
+
+// Starts `sdc-build-wp --watch` and resolves once the first build has finished and watching began.
+export async function startWatch(t, root, args = ['--builds=style,scripts', '--skip-validation']) {
+	const child = spawn(process.execPath, [cli, ...args, '--watch'], {
+		cwd: root, stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, NO_COLOR: '1', FORCE_COLOR: '0' }
+	});
+	let output = '';
+	child.stdout.on('data', chunk => { output += chunk; });
+	child.stderr.on('data', chunk => { output += chunk; });
+	const exited = new Promise((resolve, reject) => {
+		child.once('error', reject);
+		child.once('exit', (code, signal) => resolve({ code, signal }));
+	});
+	t.after(async () => {
+		if (child.exitCode === null && child.signalCode === null) { child.kill('SIGKILL'); }
+		await exited;
+	});
+	const session = {
+		child,
+		exited,
+		getOutput: () => output,
+		count: pattern => (output.match(new RegExp(pattern, 'g')) || []).length,
+		// Waits until the pattern has appeared `times` times in the output.
+		async waitFor(pattern, times = 1, timeout = 20000) {
+			const deadline = Date.now() + timeout;
+			while (session.count(pattern) < times) {
+				if (child.exitCode !== null) { throw new Error(`Process exited early:\n${output}`); }
+				if (Date.now() > deadline) { throw new Error(`Timed out waiting for ${pattern} x${times}:\n${output}`); }
+				await new Promise(resolve => setTimeout(resolve, 50));
+			}
+		}
+	};
+	await session.waitFor('Started watching');
+	return session;
 }

@@ -307,6 +307,15 @@ compiles a real block and verifies its metadata and dependency output.
 Cache lifecycle, Sass dependency updates, and watcher event routing also have
 regression coverage. Watcher unit tests simulate events without starting servers.
 
+Shared test helpers live in `tests/helpers/`: `makeTheme` copies the fixture theme
+(optionally with a fake WordPress install and offline schemas), `run` executes the
+CLI and resolves with its exit code and output, `startWatch` drives a real watch
+session, and `withProject` points the shared project singleton at a temporary
+directory for component-level tests. Lifecycle behavior (signals, config reload,
+legacy migration, `init`/`doctor --fix`, CI modes, interactive creation commands and
+crash handlers) is tested against real processes; interactive terminal rendering and
+the `[c]`/`[r]`/`[q]` key handlers are the main parts that are not.
+
 Run the fixture's build and PHP integration tests with `npm run test:theme`.
 The tests create temporary WordPress version metadata and offline schema caches;
 no installed WordPress site or network access is required. Direct fixture
