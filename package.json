@@ -29,6 +29,20 @@
 	"bin": {
 		"sdc-build-wp": "./index.js"
 	},
+	"files": [
+		"index.js",
+		"lib/",
+		"vendor/",
+		"webpack.config.js",
+		"eslint.config.js",
+		"config.schema.json",
+		".stylelintrc.json",
+		".prettierrc.json",
+		".php-cs-fixer.dist.php",
+		".phpcs.xml",
+		"composer.json",
+		".agents/"
+	],
 	"dependencies": {
 		"@stylistic/eslint-plugin": "^5.10.0",
 		"@stylistic/stylelint-plugin": "^5.3.1",
