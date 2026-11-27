@@ -151,6 +151,9 @@ test('style compilation and theme generation failures report errors without upda
 	assert.equal(await component.build(source, { name: 'style/invalid' }), false);
 	assert.equal(cache.mock.calls.length, 0);
 	await component.buildTheme();
+	assert.equal(logs.filter(log => /theme.json/.test(log.message)).length, 0, 'a missing theme.json is not an error');
+	await fs.writeFile(path.join(root, 'theme.json'), '{');
+	await component.buildTheme();
 	assert.ok(logs.some(log => log.type === 'error' && /Failed to read theme.json/.test(log.message)));
 	assert.ok(logs.some(log => log.type === 'error' && /Failed building/.test(log.message)));
 });

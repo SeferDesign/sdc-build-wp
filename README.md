@@ -2,6 +2,7 @@
 
 ```sh
 npm install sdc-build-wp
+sdc-build-wp init # scaffold .sdc-build-wp/config.json and the _src folders
 sdc-build-wp # build
 sdc-build-wp --watch # build and watch
 sdc-build-wp --watch --builds=style,scripts # comma-seperated list of components to include
@@ -270,6 +271,18 @@ copy. The reference is only added once; both commands are safe to re-run.
 Run `sdc-build-wp --doctor` (or `sdc-build-wp doctor`) to diagnose configuration,
 Node/PHP availability, PHP formatting tools, source and entry paths, output
 permissions, proxy connectivity, port availability, and configured TLS files.
+Add `--fix` (`sdc-build-wp doctor --fix`) to repair what has a safe remedy: it
+creates a missing `.sdc-build-wp/config.json` and missing source directories, and
+reports each repair as `Fixed: ...`. It never rewrites an existing or invalid
+configuration, touches legacy `package.json` settings, or installs tools.
+
+`sdc-build-wp init` sets up a new project. It writes `.sdc-build-wp/config.json`
+with a `$schema` reference for editor autocomplete, and creates `_src/style`,
+`_src/scripts`, `_src/images` and `_src/fonts`, adding a starter `main.scss` and
+`main.js` only to directories that are new or empty. Existing files are never
+touched; the configuration is only replaced with `--force`. When `package.json`
+still has legacy `sdc` settings, `init` leaves them for the next build to migrate.
+
 Use `--builds=style,scripts` to limit component-specific checks. Diagnostics do
 not build assets, migrate legacy settings, or create cache files. Errors exit
 with status `1`; optional missing source directories produce warnings.
